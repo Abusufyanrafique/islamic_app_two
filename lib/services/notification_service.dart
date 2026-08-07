@@ -1,0 +1,205 @@
+import 'package:adhan_dart/adhan_dart.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
+
+class NotificationService1 {
+  static final FlutterLocalNotificationsPlugin _plugin =
+      FlutterLocalNotificationsPlugin();
+
+ Future<void> initNotification() async {
+  const androidInit = AndroidInitializationSettings('mosque_icon');
+  const iosInit = DarwinInitializationSettings();
+final initialized = await _plugin.initialize(
+  settings: const InitializationSettings(android: androidInit, iOS: iosInit),
+  onDidReceiveNotificationResponse: (details) {},
+);
+  debugPrint("Plugin initialized: $initialized");
+  await _requestPermissions();
+  await scheduleDailyPrayerNotifications();
+}
+
+  Future<void> _requestPermissions() async {
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    await android?.requestNotificationsPermission();
+    await android?.requestExactAlarmsPermission();
+  }
+
+  Future<void> scheduleDailyPrayerNotifications() async {
+    debugPrint("scheduleDailyPrayerNotifications called");
+
+    final coords = Coordinates(33.6007, 73.0679);
+    final params = CalculationMethodParameters.ummAlQura();
+    final prayerTimes = PrayerTimes(
+      coordinates: coords,
+      date: DateTime.now(),
+      calculationParameters: params,
+    );
+
+    final now = DateTime.now();
+
+    // ── Sehri — Fajr se 30 min pehle ──────────────────────────
+    var sehriTime = prayerTimes.fajr!.toLocal().subtract(const Duration(minutes: 30));
+    if (sehriTime.isBefore(now)) sehriTime = sehriTime.add(const Duration(days: 1));
+
+    // ── Raat — Isha ke 1 ghante baad ──────────────────────────
+    var raatTime = prayerTimes.isha!.toLocal().add(const Duration(hours: 1));
+    if (raatTime.isBefore(now)) raatTime = raatTime.add(const Duration(days: 1));
+ 
+
+    // scheduleDailyPrayerNotifications() ke shuru mein add karo — test ke liye
+// await _plugin.show(
+//   id: 99,
+//   title: "Test Azan",
+//   body: "Sound test",
+//   notificationDetails: const NotificationDetails(
+//     android: AndroidNotificationDetails(
+//       'prayer_azan_channel_v2',
+//       'Prayer Azan',
+//       importance: Importance.max,
+//       priority: Priority.high,
+//       sound: RawResourceAndroidNotificationSound('adhan'),
+//       playSound: true,
+//     ),
+//   ),
+// );
+    // ── Sehri Notification ─────────────────────────────────────
+    await _plugin.zonedSchedule(
+      id: 10,
+      title: "⏳ Sehri Time!",
+      body: "Only 30 minutes remaining before Fajr.",
+      scheduledDate: tz.TZDateTime.from(sehriTime, tz.local),
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'prayer_reminder_channel',
+          'Prayer Reminders',
+          importance: Importance.max,
+          priority: Priority.high,
+          icon: 'mosque_icon',
+          largeIcon: DrawableResourceAndroidBitmap('mosque_icon'),
+          color: Color(0xFF00B894),
+          styleInformation: BigTextStyleInformation(
+            "🌙 <b>Fajr prayer is in 30 minutes</b>\n\n"
+            "• Eat your Sehri now\n"
+            "• Perform Wudu\n"
+            "• Make your Fajr intention\n"
+            "• Don't forget to make Dua",
+            htmlFormatBigText: true,
+            contentTitle: "<b>🕌 Sehri Time</b>",
+            htmlFormatContentTitle: true,
+            summaryText: "<i>Tap to open app</i>",
+            htmlFormatSummaryText: true,
+          ),
+          visibility: NotificationVisibility.public,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      matchDateTimeComponents: DateTimeComponents.time,
+    );
+
+    // ── Raat Notification ──────────────────────────────────────
+    await _plugin.zonedSchedule(
+      id: 11,
+      title: "🌙 Night Prayer Time!",
+      body: "It's time for Tahajjud and dua.",
+      scheduledDate: tz.TZDateTime.from(raatTime, tz.local),
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'prayer_reminder_channel',
+          'Prayer Reminders',
+          importance: Importance.max,
+          priority: Priority.high,
+          icon: 'mosque_icon',
+          largeIcon: DrawableResourceAndroidBitmap('mosque_icon'),
+          color: Color(0xFF6C5CE7),
+          styleInformation: BigTextStyleInformation(
+            "🌟 <b>Time for Tahajjud & Dua</b>\n\n"
+            "• Wake up for Tahajjud now\n"
+            "• Perform Wudu\n"
+            "• Make your Niyyat for Tahajjud\n"
+            "• Don't forget to make Dua",
+            htmlFormatBigText: true,
+            contentTitle: "<b>🌙 Night Prayer Time!</b>",
+            htmlFormatContentTitle: true,
+            summaryText: "<i>Tap to open app</i>",
+            htmlFormatSummaryText: true,
+          ),
+          visibility: NotificationVisibility.public,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      matchDateTimeComponents: DateTimeComponents.time,
+    );
+
+    // ── 5 Prayer Azan Notifications ────────────────────────────
+    final prayers = {
+      'Fajr':    DateTime.now().add(const Duration(minutes: 1)),
+      // 'Fajr':    prayerTimes.fajr!.toLocal(),
+      'Dhuhr':   prayerTimes.dhuhr!.toLocal(),
+      'Asr':     prayerTimes.asr!.toLocal(),
+      'Maghrib': prayerTimes.maghrib!.toLocal(),
+      'Isha':    prayerTimes.isha!.toLocal(),
+    };
+   
+
+    int id = 20;
+    for (final entry in prayers.entries) {
+      var prayerTime = entry.value;
+      if (prayerTime.isBefore(now)) {
+        prayerTime = prayerTime.add(const Duration(days: 1));
+      }
+final pending = await _plugin.pendingNotificationRequests();
+
+debugPrint("Pending = ${pending.length}");
+
+for (final p in pending) {
+  debugPrint("${p.id} ${p.title}");
+}
+final android = _plugin.resolvePlatformSpecificImplementation<
+    AndroidFlutterLocalNotificationsPlugin>();
+
+debugPrint(
+  "Exact Alarm = ${await android?.canScheduleExactNotifications()}",
+);
+
+debugPrint(
+  "Notifications Enabled = ${await android?.areNotificationsEnabled()}",
+);
+
+      await _plugin.zonedSchedule(
+        id: id++,
+          // id: 999, 
+        title: "${entry.key} Prayer Time 🕌",
+        body: "It's time for ${entry.key}",
+        scheduledDate: tz.TZDateTime.from(
+          prayerTime, 
+          // DateTime.now().add(const Duration(seconds: 5)),
+          tz.local,
+          ),
+        notificationDetails: const NotificationDetails(
+          android: AndroidNotificationDetails(
+             'prayer_azan_channel_v3', // ← change
+             'Prayer Azan',
+            importance: Importance.max,
+            priority: Priority.high,
+            icon: 'mosque_icon',
+            largeIcon: DrawableResourceAndroidBitmap('mosque_icon'),
+            // sound: RawResourceAndroidNotificationSound('adhan'),
+            playSound: true,
+            enableVibration: true,
+            visibility: NotificationVisibility.public,
+            fullScreenIntent: true,
+          ),
+        ),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        matchDateTimeComponents: DateTimeComponents.time,
+      );
+
+      debugPrint(" ${entry.key} scheduled: $prayerTime");
+    }
+
+    debugPrint("✅ Sehri: $sehriTime");
+    debugPrint("✅ Raat: $raatTime");
+  }
+}
