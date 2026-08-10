@@ -25,7 +25,7 @@ class _SplashScreenState extends State<SplashScreen> {
     return prefs.getBool("isFirstTime") ?? true;
   }
   Future<void> navigateNext() async {
-  await Future.delayed(const Duration(seconds: 3));
+  await Future.delayed(const Duration(seconds: 5));
 
   if (!mounted) return;
 
@@ -108,31 +108,40 @@ class _SplashScreenState extends State<SplashScreen> {
           child: Column(
             children: [
               SizedBox(height: getHeight(50)),
-
+          
               Image.asset(
                 AllImages.splashbackimage,
                 width: 260,
               ),
-              const Spacer(),
+              // const Spacer(),
+              SizedBox(height: getHeight(180),),
+              Image(
+              height: getHeight(160),
+              width: getWidth(200),
+              image:AssetImage("assets/images/categories/app_logo.jpeg"), ),
+              SizedBox(height: getHeight(20),),
               Text(
                 "Islamic App",
                 style: AppColors()
                     .customTextStyleBold10()
                     .copyWith(
-                      fontSize: getFont(32),
-
+                      fontSize: getFont(22),
+          
                     ),
-
+          
               ),
-
+              SizedBox(height: getHeight(50),),
+          
               const Spacer(),
               Image.asset(
-                height: getHeight(200),
+                height: getHeight(250),
+                width: double.infinity, 
+                 fit: BoxFit.fill,  
                 AllImages.masjidimage,
-                width: getWidth(400),
+                
               ),
             ],
-
+          
           ),
 
         ),

@@ -75,10 +75,23 @@ class ZakatScreen extends StatelessWidget {
     return BlocProvider(
       create: (context) => ZakatBloc(),
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text("Zakat Calculator"),
-          centerTitle: true,
-        ),
+       appBar: AppBar(
+  title: Text(
+    "Zakat Calculator",
+    style: AppColors().customTextStyle15().copyWith(
+      color: AppColors.black,
+      fontSize: getFont(16),
+    ),
+  ),
+  centerTitle: true,
+  bottom: PreferredSize(
+    preferredSize: const Size.fromHeight(0.12),
+    child: Container(
+      color: const Color(0xFF6B7678),
+      height: 0.12,
+    ),
+  ),
+),
         body: BlocBuilder<ZakatBloc, ZakatState>(
           builder: (context, state) {
             // Helper function to trigger calculation
@@ -132,6 +145,7 @@ class ZakatScreen extends StatelessWidget {
                     title: 'Value of gold, silver, gems',
                     hinttext: '0.00',
                     line: 1,
+                    
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: numberFormatter,
                     onChanged: (value) => triggerCalc(),
@@ -174,8 +188,9 @@ class ZakatScreen extends StatelessWidget {
 
                   /// Button
                   CustomButton(
-                    ontap: triggerCalc,
-                    title: "Calculate Zakat",
+                    onTap: triggerCalc,
+                    title: "Zakat Calculator",
+                    backgroundColor:Color(0xFF56C8C8)
                   ),
                 ],
               ),

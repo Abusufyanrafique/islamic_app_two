@@ -174,8 +174,11 @@ class _ProfileBody extends StatelessWidget {
                   state is ProfileLoading
                       ?  Center(child:spinkit)
                       : CustomButton(
-                    ontap: () => cubit.saveProfile(),
-                    title: "Save",
+                    // ontap: () => cubit.saveProfile(),
+                    title: "Save", 
+                    onTap: () {
+                       cubit.saveProfile();
+                      },
                   ),
 
                    SizedBox(height: getHeight(30)),

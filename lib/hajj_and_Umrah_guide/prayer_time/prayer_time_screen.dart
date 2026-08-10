@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 import 'package:adhan_dart/adhan_dart.dart';
@@ -71,8 +72,8 @@ class _PrayerTimeScreen1State extends State<PrayerTimeScreen1> {
       PrayerItem(name: "Fajr",    icon: AllImages.fajar,       notificationOn: true),
       PrayerItem(name: "Dhuhr",   icon: AllImages.dhuhr,       notificationOn: true),
       PrayerItem(name: "Asr",     icon: AllImages.asr,         notificationOn: true),
-      PrayerItem(name: "Maghrib", icon: AllImages.maghribicon, notificationOn: false),
-      PrayerItem(name: "Isha",    icon: AllImages.ishaicon,    notificationOn: false),
+      PrayerItem(name: "Maghrib", icon: AllImages.maghribicon, notificationOn: true),
+      PrayerItem(name: "Isha",    icon: AllImages.ishaicon,    notificationOn: true),
     ];
   }
 
@@ -356,7 +357,12 @@ class _PrayerTimeScreen1State extends State<PrayerTimeScreen1> {
               _buildDateSelector(),
               SizedBox(height: getHeight(20)),
               if (!_locationLoaded)
-                const Center(child: CircularProgressIndicator())
+                 Center(
+                  child: SpinKitFadingCircle(
+                  color: AppColors.labbaik,
+                  // size: 50.0,
+                   ),
+                  )
               else ...[
                 _buildCurrentPrayerCard(),
                 SizedBox(height: getHeight(20)),
@@ -366,12 +372,16 @@ class _PrayerTimeScreen1State extends State<PrayerTimeScreen1> {
               ],
               if (_azanPlaying)
                 Padding(
-                  padding: EdgeInsets.symmetric(vertical: getHeight(16)),
+                  padding: EdgeInsets.symmetric(
+                    vertical: getHeight(16),
+                    ),
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: _stopAzan,
-                      icon: const Icon(Icons.stop_circle_outlined),
+                      icon: const Icon(
+                        Icons.stop_circle_outlined,
+                        ),
                       label: const Text('Stop Azan'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red.shade400,
@@ -397,7 +407,11 @@ class _PrayerTimeScreen1State extends State<PrayerTimeScreen1> {
       children: [
         InkWell(
           onTap: () => Navigator.pop(context),
-          child: const Icon(Icons.arrow_back, size: 24, color: Colors.black),
+          child: const Icon(
+            Icons.arrow_back, 
+            size: 24, 
+            color: Colors.black,
+            ),
         ),
         Expanded(
           child: Center(

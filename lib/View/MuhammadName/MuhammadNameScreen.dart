@@ -151,18 +151,21 @@ class MuhammadNameScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: AppColors.primaryColor,
+      
         elevation: 0,
         title: Text(
           "99 Names of Muhammad ﷺ",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: getFont(18),
-            fontWeight: FontWeight.bold,
-          ),
+           style: AppColors().customTextStyleBold16(
+              color:AppColors.black )
         ),
         centerTitle: true,
+         bottom: PreferredSize(
+    preferredSize: const Size.fromHeight(0.12),
+    child: Container(
+      color: const Color(0xFF6B7678),
+      height: 0.12,
+    ),
+  ),
       ),
       body:  Column(
         children: [
@@ -194,10 +197,8 @@ class MuhammadNameScreen extends StatelessWidget {
                 SizedBox(height: getHeight(8)),
                 Text(
                   "Names of Prophet Muhammad ﷺ",
-                  style: TextStyle(
-                    fontSize: getFont(14),
-                    color: Colors.white70,
-                  ),
+                   style: AppColors().customTextStyleBold16(
+                      color:AppColors.white )
                 ),
               ],
             ),
@@ -284,7 +285,8 @@ class MuhammadNameCard extends StatelessWidget {
                         SvgPicture.asset(AllImages.numcover),
                         Text(
                           index.toString(),
-                          style:  TextStyle(
+                          style: 
+                           TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: getFont(14),
                           ),
@@ -301,17 +303,17 @@ class MuhammadNameCard extends StatelessWidget {
                         children: [
                           Text(
                             name,
-                            style:  TextStyle(
-                              fontSize: getFont(14),
-                              fontWeight: FontWeight.w500,
-                            ),
+                            style:AppColors().customTextStyleBold16().copyWith(
+                              fontSize: getFont(14)
+                            )
+                            
                           ),
                            SizedBox(height: getHeight(4)),
                           Text(
                             meaning,
-                            style:  TextStyle(
-                              fontSize: getFont(12),
-                              color: Colors.grey,
+                            style: AppColors().customTextStyle12(
+                            ).copyWith(
+                              fontSize: getFont(12)
                             ),
                           ),
                         ],

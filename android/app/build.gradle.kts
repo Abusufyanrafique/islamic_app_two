@@ -10,7 +10,6 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        // ✅ Ye line add karo
         isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -22,18 +21,26 @@ android {
 
     defaultConfig {
         applicationId = "com.example.local_notification"
-        // ✅ minSdk 21 set karo
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        // ✅ Ye add karo
         multiDexEnabled = true
     }
 
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("debug")
+
+            // ✅ FIX: minify band karo — warna notification plugin ka code remove ho jata hai
+            isMinifyEnabled = false
+            isShrinkResources = false
+            
+             // ✅ Proguard file ka reference
+        proguardFiles(
+            getDefaultProguardFile("proguard-android-optimize.txt"),
+            "proguard-rules.pro"
+        )
         }
     }
 }
@@ -43,6 +50,5 @@ flutter {
 }
 
 dependencies {
-    // ✅ Ye line add karo
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

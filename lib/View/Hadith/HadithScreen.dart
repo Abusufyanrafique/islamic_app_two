@@ -22,11 +22,19 @@ class HadithScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         title: Text(
           "Hadith Books",
-          style: TextStyle(
-            color: AppColors.primaryColor,
-            fontWeight: FontWeight.bold,
-            ),),
-        foregroundColor: AppColors.primaryColor ,
+          style:AppColors().customTextStyle15().copyWith(
+            color: AppColors.black,
+            fontSize: getFont(16),
+          )
+          ),
+        centerTitle: true,
+         bottom: PreferredSize(
+    preferredSize: const Size.fromHeight(0.12),
+    child: Container(
+      color: const Color(0xFF6B7678),
+      height: 0.12,
+    ),
+  ),
       ),
 
       body: FutureBuilder<AllHadithBookModel?>(

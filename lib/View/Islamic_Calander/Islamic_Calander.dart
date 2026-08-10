@@ -47,7 +47,15 @@ class IslamicCalendar extends StatelessWidget {
              style: AppColors().customTextStyleBold16().copyWith(
               fontSize: getFont(20)
              ),
+             
           ),
+    bottom: PreferredSize(
+    preferredSize: const Size.fromHeight(0.12),
+    child: Container(
+      color: const Color(0xFF6B7678),
+      height: 0.12,
+    ),
+  ),
         ),
         body: BlocBuilder<IslamicCalendarCubit, IslamicCalendarState>(
           builder: (context, state) {

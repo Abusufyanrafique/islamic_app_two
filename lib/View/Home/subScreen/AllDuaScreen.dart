@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:local_notification/services/audio_service/audio_service.dart';
 import 'package:share_plus/share_plus.dart';
@@ -205,14 +206,13 @@ class AllDuaScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.primaryColor,
-        foregroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        centerTitle: true,
         title:  Text(
           "All Dua",
-          style: TextStyle(
-            color: Colors.white,
-             fontWeight: FontWeight.bold,
-             ),
+          style:AppColors().customTextStyleBold16(
+            color: Colors.black,
+            )
         ),
       ),
       body: Padding(
@@ -288,7 +288,7 @@ class AllDuaScreen extends StatelessWidget {
     );
   }
 }
-class AllDuaCard extends StatelessWidget {
+class AllDuaCard extends StatefulWidget {
   final DuaModel? dua;
   final bool showLeftLine;
 
@@ -299,15 +299,21 @@ class AllDuaCard extends StatelessWidget {
   });
 
   @override
+  State<AllDuaCard> createState() => _AllDuaCardState();
+}
+
+class _AllDuaCardState extends State<AllDuaCard> {
+  bool isLoading = false;
+
+  @override
   Widget build(BuildContext context) {
-    // Pick a random dua if none provided
-    final selectedDua = dua ?? namesList[Random().nextInt(namesList.length)];
+    final selectedDua = widget.dua ?? namesList[Random().nextInt(namesList.length)];
 
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (showLeftLine)
+          if (widget.showLeftLine)
             Container(
               width: getWidth(6),
               decoration: BoxDecoration(
@@ -315,8 +321,7 @@ class AllDuaCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-          if (showLeftLine) SizedBox(
-            width: getWidth(12),),
+          if (widget.showLeftLine) SizedBox(width: getWidth(12)),
           Expanded(
             child: Container(
               width: double.infinity,
@@ -328,18 +333,13 @@ class AllDuaCard extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.2),
-                     blurRadius: 6),
+                  BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 6),
                 ],
               ),
               child: Column(
                 children: [
-                  // Top action bar
                   Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: getWidth(12),
-                      ),
+                    padding: EdgeInsets.symmetric(horizontal: getWidth(12)),
                     height: getHeight(38),
                     decoration: BoxDecoration(
                       color: Colors.grey.shade200,
@@ -360,27 +360,45 @@ class AllDuaCard extends StatelessWidget {
                           child: SvgPicture.asset('assets/icons/Group.svg'),
                         ),
                         SizedBox(width: getWidth(10)),
-                        // Play / Stop (TTS) button
+
                         ValueListenableBuilder<String?>(
-                        valueListenable: AudioService.instance.currentlySpeaking,
-                        builder: (context, speakingId, _) {
-                        final isThisPlaying = speakingId == selectedDua.arabic;
-                        return GestureDetector(
-                        onTap: () {
-                        debugPrint("Current: $speakingId");
-                        AudioService.instance.speakOrToggle(
-                        selectedDua.arabic,
-                        selectedDua.arabic,
-                        );
-                        },
-                       child: Icon(
-                       isThisPlaying ? Icons.stop_circle : Icons.play_circle_fill,
-                       color: AppColors.primaryColor,
-                       size: 28,
-      ),
-    );
-  },
-),
+                          valueListenable: AudioService.instance.currentlySpeaking,
+                          builder: (context, speakingId, _) {
+                            final isThisPlaying = speakingId == selectedDua.arabic;
+                            return GestureDetector(
+                              onTap: isLoading
+                                  ? null
+                                  : () async {
+                                      setState(() => isLoading = true);
+                                      try {
+                                        await AudioService.instance.speakOrToggle(
+                                          selectedDua.arabic,
+                                          selectedDua.arabic,
+                                        );
+                                      } finally {
+                                        if (mounted) setState(() => isLoading = false);
+                                      }
+                                    },
+                              child: isLoading
+                                  ? SizedBox(
+                                      // width: 28,
+                                      // height: 28,
+                                      child:
+                                       SpinKitFadingCircle(
+                                      color: AppColors.labbaik,
+                                      size: 30.0,
+                                     ),
+                                    )
+                                  : Icon(
+                                      isThisPlaying
+                                          ? Icons.stop_circle
+                                          : Icons.play_circle_fill,
+                                      color: AppColors.primaryColor,
+                                      size: 28,
+                                    ),
+                            );
+                          },
+                        ),
                       ],
                     ),
                   ),
@@ -483,19 +501,18 @@ class QuickAccessContainer extends StatelessWidget {
         children: [
           Text(
             heading,
-            style: TextStyle(
-              fontWeight: FontWeight.w500,
-              fontSize: getFont(10),
+            style:AppColors().customTextStyle12(
               color: isSelected ? Colors.white : Colors.black,
-            ),
+               )
           ),
+          SizedBox(height: getHeight(4),),
           Text(
             subheading,
-            style: TextStyle(
-              fontWeight: FontWeight.w500,
-              fontSize: getFont(10),
+             style:AppColors().customTextStyle12(
               color: isSelected ? Colors.white : Colors.black,
-            ),
+               ).copyWith(
+                fontSize: getFont(10)
+               )
           ),
         ],
       ),

@@ -27,6 +27,10 @@ environment:
 # dependencies can be manually updated by changing the version numbers below to
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/categories/app_logo.jpeg"
 dependencies:
   flutter:
     sdk: flutter
@@ -76,6 +80,8 @@ dependencies:
   flutter_tts: ^4.2.3
   flutter_ringtone_player: ^4.0.0+4
   # workmanager: ^0.5.2
+  flutter_launcher_icons: ^0.13.1
+  
 
 
 dev_dependencies:

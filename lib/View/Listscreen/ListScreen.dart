@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:local_notification/Utils/Constants/AllImages.dart';
 import 'package:local_notification/Utils/Constants/SizeConfig.dart';
+import 'package:local_notification/View/Islamic_Calander/Islamic_Calander.dart';
+import 'package:local_notification/View/Listscreen/Profile/ProfileScreen.dart';
 import 'package:local_notification/View/Listscreen/subscreen/AlreadyReciter/AppointmentRequest.dart';
 import 'package:local_notification/View/Listscreen/subscreen/RegisterAsHafiz/RegisterAsHafiz.dart';
 import 'package:local_notification/hajj_and_Umrah_guide/hajj_umrah_splash_screen.dart';
@@ -33,39 +35,39 @@ class ListScreen extends StatelessWidget {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // CustomContainer(
-              //   "Profile",
-              //   Column(
-              //     children: [
-              //       // AllListButton(
-              //       //   "Profile",
-              //       //   AllImages.premium,
-              //       //   onTap: () {
-              //       //     Navigator.push(
-              //       //       context,
-              //       //       MaterialPageRoute(
-              //       //           builder: (context) =>
-              //       //               ProfileScreen()
-              //       //       ),
-              //       //     );
-              //       //     print("Fajr tapped!");
-              //       //     // Or navigate to another screen
-              //       //     // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
-              //       //   },
-              //       // ),
-              //       // AllListButton(
-              //       //   "My Premium",
-              //       //   AllImages.premium,
-              //       //   onTap: () {
+              CustomContainer(
+                "Profile",
+                Column(
+                  children: [
+                    AllListButton(
+                      "Profile",
+                      AllImages.premium,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  ProfileScreen()
+                          ),
+                        );
+                        print("Fajr tapped!");
+                        // Or navigate to another screen
+                        // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
+                      },
+                    ),
+                    // AllListButton(
+                    //   "My Premium",
+                    //   AllImages.premium,
+                    //   onTap: () {
 
-              //       //     print("Fajr tapped!");
-              //       //     // Or navigate to another screen
-              //       //     // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
-              //       //   },
-              //       // ),
-              //     ],
-              //   ),
-              // ),
+                    //     print("Fajr tapped!");
+                    //     // Or navigate to another screen
+                    //     // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
+                    //   },
+                    // ),
+                  ],
+                ),
+              ),
               // CustomContainer(
               //   "Communication Prefrences",
               //   Column(
@@ -101,53 +103,53 @@ class ListScreen extends StatelessWidget {
                       onTap: () {
                         print("Fajr tapped!");
                         // Or navigate to another screen
-                        // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => IslamicCalendar()));
                       },
                     ),
-                    AllListButton(
-                      "Al Quran",
-                      AllImages.quranic,
-                      onTap: () {
-                        print("Fajr tapped!");
-                        // Or navigate to another screen
-                        // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
-                      },
-                    ),
-                    AllListButton(
-                      "Hadith",
-                      AllImages.hadith,
-                      onTap: () {
-                        // Navigator.push(
-                        //     context,
-                        //     MaterialPageRoute(
-                        //         builder: (context) => ChatScreen(
-                        //           muftiName: "Ahmad",
-                        //           muftiStatus: "Online",
-                        //           muftiImage: "",
-                        //         )
-                        //       // ImamRegistrationScreen()
-                        //     ));
-                        print("Fajr tapped!");
-                        // Or navigate to another screen
-                        // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
-                      },
-                    ),
-                    AllListButton(
-                      "Tasbih",
-                      AllImages.tasbih,
-                      onTap: () {
+                    // AllListButton(
+                    //   "Al Quran",
+                    //   AllImages.quranic,
+                    //   onTap: () {
+                    //     print("Fajr tapped!");
+                    //     // Or navigate to another screen
+                    //     // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
+                    //   },
+                    // ),
+                    // AllListButton(
+                    //   "Hadith",
+                    //   AllImages.hadith,
+                    //   onTap: () {
+                    //     Navigator.push(
+                    //         context,
+                    //         MaterialPageRoute(
+                    //             builder: (context) => ChatScreen(
+                    //               muftiName: "Ahmad",
+                    //               muftiStatus: "Online",
+                    //               muftiImage: "",
+                    //             )
+                    //           // ImamRegistrationScreen()
+                    //         ));
+                    //     print("Fajr tapped!");
+                    //     // Or navigate to another screen
+                    //     // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
+                    //   },
+                    // ),
+                    // AllListButton(
+                    //   "Tasbih",
+                    //   AllImages.tasbih,
+                    //   onTap: () {
 
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => AppointmentRequest(muftiId: 3,)
-                              // ImamRegistrationScreen()
-                            ));
-                        print("Fajr tapped!");
-                        // Or navigate to another screen
-                        // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
-                      },
-                    ),
+                    //     Navigator.push(
+                    //         context,
+                    //         MaterialPageRoute(
+                    //             builder: (context) => AppointmentRequest(muftiId: 3,)
+                    //           // ImamRegistrationScreen()
+                    //         ));
+                    //     print("Fajr tapped!");
+                    //     // Or navigate to another screen
+                    //     // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
+                    //   },
+                    // ),
 
                AllListButton(
                "Labbaik",
@@ -161,21 +163,21 @@ class ListScreen extends StatelessWidget {
     );
   },
 ),
-                    AllListButton(
-                      "Register as Hafiz",
-                      AllImages.register,
-                      onTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  ImamRegistrationScreen()
-                          ));
-                        print("Fajr tapped!");
-                        // Or navigate to another screen
-                        // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
-                      },
-                    ),
+                    // AllListButton(
+                    //   "Register as Hafiz",
+                    //   AllImages.register,
+                    //   onTap: () {
+                    //   Navigator.push(
+                    //       context,
+                    //       MaterialPageRoute(
+                    //           builder: (context) =>
+                    //               ImamRegistrationScreen()
+                    //       ));
+                    //     print("Fajr tapped!");
+                    //     // Or navigate to another screen
+                    //     // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
+                    //   },
+                    // ),
                     // AllListButton(
                     //   "Already Reciter",
                     //   AllImages.reciter,

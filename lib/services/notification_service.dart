@@ -40,6 +40,7 @@ final initialized = await _plugin.initialize(
     final now = DateTime.now();
 
     // ── Sehri — Fajr se 30 min pehle ──────────────────────────
+    // var sehriTime = now.add(const Duration(seconds: 30));
     var sehriTime = prayerTimes.fajr!.toLocal().subtract(const Duration(minutes: 30));
     if (sehriTime.isBefore(now)) sehriTime = sehriTime.add(const Duration(days: 1));
 
@@ -67,9 +68,12 @@ final initialized = await _plugin.initialize(
     // ── Sehri Notification ─────────────────────────────────────
     await _plugin.zonedSchedule(
       id: 10,
-      title: "⏳ Sehri Time!",
-      body: "Only 30 minutes remaining before Fajr.",
-      scheduledDate: tz.TZDateTime.from(sehriTime, tz.local),
+      title: "📖 Time for Quran Recitation",
+      body: "Start your morning with the words of Allah.",
+      scheduledDate: tz.TZDateTime.from(
+        sehriTime,
+         tz.local,
+         ),
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'prayer_reminder_channel',
@@ -79,14 +83,14 @@ final initialized = await _plugin.initialize(
           icon: 'mosque_icon',
           largeIcon: DrawableResourceAndroidBitmap('mosque_icon'),
           color: Color(0xFF00B894),
-          styleInformation: BigTextStyleInformation(
-            "🌙 <b>Fajr prayer is in 30 minutes</b>\n\n"
-            "• Eat your Sehri now\n"
-            "• Perform Wudu\n"
-            "• Make your Fajr intention\n"
-            "• Don't forget to make Dua",
+         styleInformation: BigTextStyleInformation(
+            "🌅 <b>Begin your day with Quran</b>\n\n"
+            "• Open the Quran and recite with reflection\n"
+            "• Even a few verses bring immense reward\n"
+            "• The best of you are those who learn the Quran and teach it\n"
+            "• May Allah bless your morning with His words",
             htmlFormatBigText: true,
-            contentTitle: "<b>🕌 Sehri Time</b>",
+            contentTitle: "<b>📖 Quran Recitation Time</b>",
             htmlFormatContentTitle: true,
             summaryText: "<i>Tap to open app</i>",
             htmlFormatSummaryText: true,
@@ -134,8 +138,8 @@ final initialized = await _plugin.initialize(
 
     // ── 5 Prayer Azan Notifications ────────────────────────────
     final prayers = {
-      'Fajr':    DateTime.now().add(const Duration(minutes: 1)),
-      // 'Fajr':    prayerTimes.fajr!.toLocal(),
+      // 'Fajr':    DateTime.now().add(const Duration(minutes: 1)),
+      'Fajr':    prayerTimes.fajr!.toLocal(),
       'Dhuhr':   prayerTimes.dhuhr!.toLocal(),
       'Asr':     prayerTimes.asr!.toLocal(),
       'Maghrib': prayerTimes.maghrib!.toLocal(),

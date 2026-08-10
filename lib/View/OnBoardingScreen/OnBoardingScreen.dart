@@ -62,10 +62,13 @@ class OnBoardingScreen extends StatelessWidget {
                       padding:  EdgeInsets.symmetric(
                         horizontal: getWidth(10),
                         ),
-                      child: Image.asset(AllImages.upperimage, fit: BoxFit.cover),
+                      child: Image.asset(
+                        AllImages.upperimage,
+                         fit: BoxFit.cover,
+                         ),
                     ),
                     SizedBox(
-                      height: getHeight(370),
+                      height: getHeight(398),
                       child: PageView(
                         controller: controller,
                         onPageChanged: (index) {

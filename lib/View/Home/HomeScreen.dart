@@ -303,7 +303,6 @@ class HomeScreen extends StatelessWidget {
           return Scaffold(
             appBar: AppBar(
               centerTitle: false,
-
               title: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -323,7 +322,7 @@ class HomeScreen extends StatelessWidget {
                           Icon(
                             Icons.calendar_month,
                             color: AppColors.primaryColor,
-                            size: 18,
+                            size: 22,
                           ),
                 
                            SizedBox(width: getWidth(4)),
@@ -363,76 +362,86 @@ class HomeScreen extends StatelessWidget {
                   );
                   },
 
-                  icon: Icon(Icons.menu, color: AppColors.primaryColor),
+                  icon: Icon(
+                    Icons.menu, 
+                    color: AppColors.primaryColor,
+                    ),
                 ),
               ],
             ),
 
-            body: RefreshIndicator(
-              onRefresh: () async =>
-                  context.read<HomeBloc>().add(RefreshHomeData()),
-
-              child: Padding(
-                padding:  EdgeInsets.symmetric(
-                  horizontal: getWidth(16),
-                  ),
-
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: getHeight(10)),
-                    _buildTopBanner(width, state),
-                    SizedBox(height: getHeight(20)),
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 5,
-                            crossAxisSpacing: 4,
-                            mainAxisSpacing: 1,
-                            childAspectRatio: 0.78,
-                          ),
-                
-                      itemCount: _getGridItems(context).length,
-                
-                      itemBuilder: (context, index) {
-                        final gridItems = _getGridItems(context);
-                
-                        return GridViewicon(
-                          icon: SvgPicture.asset(
-                            gridItems[index]["icon"],
-                            color: Colors.white,
-                            height: getHeight(32),
-                          ),
-                
-                          title: gridItems[index]["title"],
-                
-                          onclick: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => gridItems[index]["screen"],
+            body: Container(
+               decoration:  BoxDecoration(
+               image: DecorationImage(
+               image: AssetImage(AllImages.splashback),
+               fit: BoxFit.cover,
+    ),
+  ),
+              child: RefreshIndicator(
+                onRefresh: () async =>
+                    context.read<HomeBloc>().add(RefreshHomeData()),
+                child: Padding(
+                  padding:  EdgeInsets.symmetric(
+                    horizontal: getWidth(16),
+                    ),
+              
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: getHeight(10)),
+                      _buildTopBanner(width, state),
+                      SizedBox(height: getHeight(20)),
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 5,
+                              crossAxisSpacing: 4,
+                              mainAxisSpacing: 1,
+                              childAspectRatio: 0.78,
                             ),
-                          ),
-                        );
-                      },
-                    ),
-                
-                    SizedBox(height: getHeight(12)),
-                
-                    _buildDuaSection(context),
-                
-                    SizedBox(height: getHeight(12)),
-                
-                    Text(
-                      "Prayer Time",
-                      style: AppColors().customTextStyleBold16(
-                        color: Colors.black,
+                  
+                        itemCount: _getGridItems(context).length,
+                  
+                        itemBuilder: (context, index) {
+                          final gridItems = _getGridItems(context);
+                  
+                          return GridViewicon(
+                            icon: SvgPicture.asset(
+                              gridItems[index]["icon"],
+                              color: Colors.white,
+                              height: getHeight(32),
+                            ),
+                  
+                            title: gridItems[index]["title"],
+                  
+                            onclick: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => gridItems[index]["screen"],
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    ),
-                    SizedBox(height: getHeight(12)),
-                    _buildPrayerTable(width, state, context),
-                  ],
+                  
+                      SizedBox(height: getHeight(12)),
+                  
+                      _buildDuaSection(context),
+                  
+                      SizedBox(height: getHeight(12)),
+                  
+                      Text(
+                        "Prayer Time",
+                        style: AppColors().customTextStyleBold16(
+                          color: Colors.black,
+                        ),
+                      ),
+                      SizedBox(height: getHeight(12)),
+                      _buildPrayerTable(width, state, context),
+                    ],
+                  ),
                 ),
               ),
             ),

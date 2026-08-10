@@ -12,13 +12,14 @@ import '../../Utils/Constants/userFeedback.dart';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-
+// ── State ───────────────────────────────────────────────────
 class QiblaState {
   final double compassHeading;
   final double qiblaDirection;
   final bool isLoading;
   final bool isFromCache;
   final String errorMsg;
+  final bool isAligned;
 
   QiblaState({
     this.compassHeading = 0.0,
@@ -26,6 +27,7 @@ class QiblaState {
     this.isLoading = true,
     this.isFromCache = false,
     this.errorMsg = '',
+    this.isAligned = false,
   });
 
   QiblaState copyWith({
@@ -34,6 +36,7 @@ class QiblaState {
     bool? isLoading,
     bool? isFromCache,
     String? errorMsg,
+    bool? isAligned,
   }) {
     return QiblaState(
       compassHeading: compassHeading ?? this.compassHeading,
@@ -41,53 +44,38 @@ class QiblaState {
       isLoading: isLoading ?? this.isLoading,
       isFromCache: isFromCache ?? this.isFromCache,
       errorMsg: errorMsg ?? this.errorMsg,
+      isAligned: isAligned ?? this.isAligned,
     );
   }
 }
 
+// ── Cubit ───────────────────────────────────────────────────
 class QiblaCubit extends Cubit<QiblaState> {
   final HiveService _hive = HiveService();
   StreamSubscription? _compassSubscription;
-
-  // Tracks whether device was already aligned with Qibla on the
-  // previous compass reading, so we only fire feedback once per
-  // "entering the aligned zone" event (not on every frame).
-  bool _wasAligned = false;
   final AudioPlayer _audioPlayer = AudioPlayer();
+
+  // ✅ FINAL FIX: Sirf timestamp track karo
+  // Jab bhi sound baje → time save karo
+  // Agli sound tab baje jab 2 second guzar jaayein (user actually door gaya hoga)
+  DateTime _lastAlignedTime = DateTime(2000);
+  bool _currentlyAligned = false;
+
+  // 10 degree = aligned zone
+  static const double _alignDeg = 10.0;
 
   QiblaCubit() : super(QiblaState()) {
     _audioPlayer.setReleaseMode(ReleaseMode.stop);
-    _testSoundOnStartup();
-  }
-
-  // TEMPORARY: fires once on app start to confirm the sound asset
-  // itself works, independent of compass/alignment logic.
-  // Remove this after confirming sound works correctly.
-  void _testSoundOnStartup() async {
-    await Future.delayed(const Duration(seconds: 2));
-    debugPrint('🧪 Testing startup sound...');
-    await _playBeep();
   }
 
   Future<void> _playBeep() async {
     try {
       await _audioPlayer.stop();
       await _audioPlayer.play(AssetSource('ringtone/beep.wav'), volume: 1.0);
-      debugPrint('✅ beep.wav play() called successfully');
-    } catch (e) {
-      debugPrint('❌ Sound failed: $e');
-    }
-  }
-
-  // Public wrapper so a UI button can trigger a sound test on demand,
-  // removing any timing dependency on app startup.
-  void debugTestSound() {
-    debugPrint('🧪 Manual test button pressed');
-    _playBeep();
+    } catch (e) {}
   }
 
   void init() async {
-    // 1. Check Cache
     final saved = _hive.loadSavedLocation();
     if (saved != null) {
       final qibla = _calculateQibla(saved['lat']!, saved['lng']!);
@@ -96,7 +84,7 @@ class QiblaCubit extends Cubit<QiblaState> {
         isFromCache: true,
         isLoading: false,
       ));
-      _startCompass();
+      _startCompassIfNeeded();
       _updateLocationInBackground();
     } else {
       fetchLocationFromGPS();
@@ -110,63 +98,84 @@ class QiblaCubit extends Cubit<QiblaState> {
       if (perm == LocationPermission.denied) {
         perm = await Geolocator.requestPermission();
       }
-      if (perm == LocationPermission.deniedForever || perm == LocationPermission.denied) {
-        emit(state.copyWith(isLoading: false, errorMsg: 'Location permission denied.'));
+      if (perm == LocationPermission.deniedForever ||
+          perm == LocationPermission.denied) {
+        emit(state.copyWith(
+            isLoading: false, errorMsg: 'Location permission denied.'));
         return;
       }
-
-      final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      final pos = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
       await _hive.saveLocation(pos.latitude, pos.longitude);
-
       final qibla = _calculateQibla(pos.latitude, pos.longitude);
-      emit(state.copyWith(qiblaDirection: qibla, isLoading: false, isFromCache: false));
-      _startCompass();
+      emit(state.copyWith(
+          qiblaDirection: qibla, isLoading: false, isFromCache: false));
+      _startCompassIfNeeded();
     } catch (e) {
-      emit(state.copyWith(isLoading: false, errorMsg: 'Location not found. Turn on GPS.'));
+      emit(state.copyWith(
+          isLoading: false, errorMsg: 'Location not found. Turn on GPS.'));
     }
   }
 
- void _updateLocationInBackground() async {
-  try {
-    final pos = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    ).timeout(const Duration(seconds: 10));
-    await _hive.saveLocation(pos.latitude, pos.longitude);
-    final qibla = _calculateQibla(pos.latitude, pos.longitude);
-    emit(state.copyWith(qiblaDirection: qibla, isFromCache: false));
-  } catch (e) {
-    debugPrint('Background update failed: $e');
-    emit(state.copyWith(isFromCache: false)); 
+  void _updateLocationInBackground() async {
+    try {
+      final pos = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      ).timeout(const Duration(seconds: 10));
+      await _hive.saveLocation(pos.latitude, pos.longitude);
+      final qibla = _calculateQibla(pos.latitude, pos.longitude);
+      if (!isClosed)
+        emit(state.copyWith(qiblaDirection: qibla, isFromCache: false));
+    } catch (e) {
+      if (!isClosed) emit(state.copyWith(isFromCache: false));
+    }
   }
-}
+
+  void _startCompassIfNeeded() {
+    if (_compassSubscription != null) return;
+    _startCompass();
+  }
 
   void _startCompass() {
     _compassSubscription?.cancel();
-    _wasAligned = false;
+    _currentlyAligned = false;
+    _lastAlignedTime = DateTime(2000);
 
     _compassSubscription = FlutterCompass.events?.listen((event) {
-      if (event.heading != null) {
-        final heading = event.heading!;
-        emit(state.copyWith(compassHeading: heading));
-        _checkAlignmentFeedback(heading);
+      if (isClosed) return;
+      if (event.heading == null) return;
+
+      final heading = event.heading!;
+      final qibla = state.qiblaDirection;
+
+      // Angle between device and Qibla (0 = perfect, 180 = opposite)
+      final angle = (qibla - heading + 360) % 360;
+
+      // 10 degree ke andar = aligned
+      final bool isAligned =
+          angle < _alignDeg || angle > (360 - _alignDeg);
+
+      emit(state.copyWith(compassHeading: heading, isAligned: isAligned));
+
+      // ✅ SIMPLE LOGIC:
+      // Aligned zona mein enter kiya → sound bajao
+      // Condition: pehle aligned nahi tha (entering the zone)
+      // YA 2 second pehle sound baj chuki thi (user wapas aaya)
+      if (isAligned && !_currentlyAligned) {
+        // User ne qibla zone enter kiya
+        final now = DateTime.now();
+        final timeSinceLast = now.difference(_lastAlignedTime).inMilliseconds;
+
+        // Pehli baar ya 2 second baad wapas aaya → sound bajao
+        if (timeSinceLast > 2000) {
+          _lastAlignedTime = now;
+          HapticFeedback.mediumImpact();
+          _playBeep();
+        }
       }
+
+      _currentlyAligned = isAligned;
     });
-  }
-
-
-  void _checkAlignmentFeedback(double heading) {
-    final angle = (state.qiblaDirection - heading + 360) % 360;
-    final isAligned = angle < 5 || angle > 355;
-
-    // Temporary debug line — remove once sound is confirmed working.
-    debugPrint('Qibla check → angle: ${angle.toStringAsFixed(1)}, isAligned: $isAligned, wasAligned: $_wasAligned');
-
-    if (isAligned && !_wasAligned) {
-      debugPrint('🔔 Alignment triggered — attempting haptic + sound');
-      HapticFeedback.mediumImpact();
-      _playBeep();
-    }
-    _wasAligned = isAligned;
   }
 
   double _calculateQibla(double lat, double lng) {
@@ -176,7 +185,8 @@ class QiblaCubit extends Cubit<QiblaState> {
     final lat2 = kLat * math.pi / 180;
     final dLng = (kLng - lng) * math.pi / 180;
     final y = math.sin(dLng) * math.cos(lat2);
-    final x = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(dLng);
+    final x = math.cos(lat1) * math.sin(lat2) -
+        math.sin(lat1) * math.cos(lat2) * math.cos(dLng);
     final bearing = math.atan2(y, x) * 180 / math.pi;
     return (bearing + 360) % 360;
   }
@@ -184,20 +194,26 @@ class QiblaCubit extends Cubit<QiblaState> {
   @override
   Future<void> close() {
     _compassSubscription?.cancel();
+    _compassSubscription = null;
     _audioPlayer.dispose();
     return super.close();
   }
 }
 
-class QiblaScreen extends StatelessWidget {
+// ── Screen ──────────────────────────────────────────────────
+class QiblaScreen extends StatefulWidget {
   const QiblaScreen({super.key});
 
+  @override
+  State<QiblaScreen> createState() => _QiblaScreenState();
+}
+
+class _QiblaScreenState extends State<QiblaScreen> with RouteAware {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => QiblaCubit()..init(),
       child: Scaffold(
-        backgroundColor: const Color(0xFFF5F5F0),
         body: Stack(
           children: [
             Positioned.fill(child: CustomPaint(painter: _BgPatternPainter())),
@@ -206,29 +222,21 @@ class QiblaScreen extends StatelessWidget {
                 return GestureDetector(
                   onTap: () {
                     Navigator.push(
-                    context,
+                      context,
                       MaterialPageRoute(
-                     builder: (_) => const HajjUmrahSplashScreen(),
-        ),
-      );
+                        builder: (_) => const HajjUmrahSplashScreen(),
+                      ),
+                    );
                   },
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // SizedBox(height: 10,),
                       _buildKaabaImage(),
-                      SizedBox(height: 10,),
-                      if (state.isFromCache && !state.isLoading) _buildCacheBadge(),
-                      // TEMPORARY debug button — remove once sound is confirmed working.
-                      // Padding(
-                      //   padding: const EdgeInsets.only(top: 8),
-                      //   child: ElevatedButton(
-                      //     onPressed: () => context.read<QiblaCubit>().debugTestSound(),
-                      //     child: const Text('🔊 Test Sound (tap me)'),
-                      //   ),
-                      // ),
+                      SizedBox(height: getHeight(10)),
+                      if (state.isFromCache && !state.isLoading)
+                        _buildCacheBadge(),
                       if (state.isLoading)
-                         Expanded(child: Center(child: spinkit)) 
+                        Expanded(child: Center(child: spinkit))
                       else if (state.errorMsg.isNotEmpty)
                         _buildError(context, state.errorMsg)
                       else
@@ -246,142 +254,163 @@ class QiblaScreen extends StatelessWidget {
 
   Widget _buildCacheBadge() {
     return Container(
-      margin:  EdgeInsets.only(top: getHeight(8)),
-      padding:  EdgeInsets.symmetric(
-        horizontal: getWidth(12), 
+      margin: EdgeInsets.only(top: getHeight(8)),
+      padding: EdgeInsets.symmetric(
+        horizontal: getWidth(12),
         vertical: getHeight(8),
-        ),
+      ),
       decoration: BoxDecoration(
         color: Colors.orange.shade50,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.orange.shade200
-          ),
+        border: Border.all(color: Colors.orange.shade200),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.history, 
-            size: 14, 
-            color: Colors.orange.shade700,
+          Icon(Icons.history, size: 14, color: Colors.orange.shade700),
+          SizedBox(width: getWidth(4)),
+          Text(
+            'Using saved location • Updating...',
+            style: TextStyle(
+              fontSize: getFont(11),
+              color: Colors.orange.shade800,
             ),
-           SizedBox(width: getWidth(4)),
-          Text('Using saved location • Updating...',
-              style: TextStyle(
-                fontSize: getFont(11),
-                color: Colors.orange.shade800,
-                )),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildContent(QiblaState state) {
-    double qiblaAngle = (state.qiblaDirection - state.compassHeading + 360) % 360;
+    final double qiblaAngle =
+        (state.qiblaDirection - state.compassHeading + 360) % 360;
 
     return SingleChildScrollView(
       child: Column(
         children: [
-           SizedBox(height: getHeight(35)),
-          _buildCompass(state.compassHeading, state.qiblaDirection),
-           SizedBox(height: getHeight(24)),
+          SizedBox(height: getHeight(35)),
+          _buildCompass(
+              state.compassHeading, state.qiblaDirection, state.isAligned),
+          SizedBox(height: getHeight(24)),
           _buildDegreeDisplay(qiblaAngle),
-           SizedBox(height: getHeight(10)),
+          SizedBox(height: getHeight(10)),
           _buildInstruction(qiblaAngle),
-           SizedBox(height: getHeight(24)),
+          SizedBox(height: getHeight(24)),
         ],
       ),
     );
   }
 
-  // --- UI Helpers (Styles preserved exactly) ---
-
-  Widget _buildCompass(double heading, double qiblaDir) {
+  Widget _buildCompass(double heading, double qiblaDir, bool isAligned) {
     final double ringAngle = -heading * math.pi / 180;
     final double qiblaScreenAngle = (qiblaDir - heading) * math.pi / 180;
 
-    // Determine if currently aligned, to give the Kaaba badge a
-    // "locked on" highlight state purely as a visual cue.
-    final double diff = (qiblaDir - heading + 360) % 360;
-    final bool isAligned = diff < 5 || diff > 355;
-
     return SizedBox(
       width: getWidth(280),
-       height: getHeight(300),
+      height: getHeight(300),
       child: Stack(
         alignment: Alignment.center,
         children: [
           Transform.rotate(
-            angle: ringAngle, 
+            angle: ringAngle,
             child: CustomPaint(
-              size:  Size(280, 280),
-               painter: _RingPainter(),
-               )),
+              size: const Size(280, 280),
+              painter: _RingPainter(heading: heading),
+            ),
+          ),
           Container(
-            width: getWidth(212), 
+            width: getWidth(212),
             height: getHeight(212),
             decoration: BoxDecoration(
-              color: Colors.white, shape: BoxShape.circle,
+              color: Colors.white,
+              shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.1),
-                   blurRadius: 16, spreadRadius: 2)],
+                  blurRadius: 16,
+                  spreadRadius: 2,
+                )
+              ],
             ),
           ),
           Transform.rotate(
-            angle: ringAngle, 
+            angle: ringAngle,
             child: CustomPaint(
               size: const Size(212, 212),
-              painter: _NeedlePainter())),
+              painter: _NeedlePainter(heading: heading),
+            ),
+          ),
           Container(
-            width: getWidth(14), 
-            height: getHeight(14), 
+            width: getWidth(14),
+            height: getHeight(14),
             decoration: const BoxDecoration(
-              color: Color(0xFF1A4A4A), 
+              color: Color(0xFF1A4A4A),
               shape: BoxShape.circle,
-              )),
+            ),
+          ),
           Transform.rotate(
             angle: qiblaScreenAngle,
             child: SizedBox(
-              width: getWidth(212), 
+              width: getWidth(212),
               height: getHeight(212),
               child: Stack(
                 alignment: Alignment.center,
                 children: [
                   Positioned(
-                    top: 6, 
-                    left: 0, 
-                    right: 0, 
+                    top: 6,
+                    left: 0,
+                    right: 0,
                     child: Center(
                       child: CustomPaint(
                         size: const Size(16, 14),
-                         painter: _ArrowTipPainter()),
-                         )),
+                        painter: _ArrowTipPainter(isAligned: isAligned),
+                      ),
+                    ),
+                  ),
                   Positioned(
-                    top: 18, left: 0, right: 0,
+                    top: 18,
+                    left: 0,
+                    right: 0,
                     child: Center(
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        width: getWidth(42), 
-                        height: getHeight(42),
-                        decoration: BoxDecoration(
-                          color: Colors.white, shape: BoxShape.circle,
-                          border: Border.all(
-                            color: isAligned
-                                ? const Color(0xFF2ECC71)
-                                : const Color(0xFFD4A017), 
-                            width: 2.5),
-                          boxShadow: [BoxShadow(
-                            color: (isAligned
-                                    ? const Color(0xFF2ECC71)
-                                    : const Color(0xFFD4A017))
-                                .withOpacity(0.4), 
-                            blurRadius: isAligned ? 14 : 10)],
+                      child: TweenAnimationBuilder<Color?>(
+                        key: ValueKey(isAligned),
+                        tween: ColorTween(
+                          begin: isAligned
+                              ? const Color(0xFFD4A017)
+                              : const Color(0xFF2ECC71),
+                          end: isAligned
+                              ? const Color(0xFF2ECC71)
+                              : const Color(0xFFD4A017),
                         ),
-                        child:  Center(child: Text(
-                          '🕋', 
-                        style: TextStyle(fontSize:getFont(20) ))),
+                        duration: const Duration(milliseconds: 400),
+                        builder: (context, color, _) {
+                          final activeColor = color ?? const Color(0xFFD4A017);
+                          return Container(
+                            width: getWidth(42),
+                            height: getHeight(42),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: activeColor,
+                                width: 2.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: activeColor.withOpacity(0.45),
+                                  blurRadius: isAligned ? 16 : 8,
+                                  spreadRadius: isAligned ? 2 : 0,
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: Text(
+                                '🕋',
+                                style: TextStyle(fontSize: getFont(20)),
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ),
@@ -397,64 +426,71 @@ class QiblaScreen extends StatelessWidget {
   Widget _buildDegreeDisplay(double angle) {
     return Column(
       children: [
-        Text('${angle.toStringAsFixed(0)}°',
-            style:  TextStyle(
-              fontSize: getFont(58), 
-              fontWeight: FontWeight.w900, 
-              color: Color(0xFF1A1A1A), 
-              letterSpacing: -2)),
-         Text("Device's angle to Qibla", 
-        style: AppColors().customTextStyleRegular10(
-          color:AppColors.black ).copyWith(
-            fontSize: getFont(14)
+        Text(
+          '${angle.toStringAsFixed(0)}°',
+          style: TextStyle(
+            fontSize: getFont(58),
+            fontWeight: FontWeight.w900,
+            color: const Color(0xFF1A1A1A),
+            letterSpacing: -2,
           ),
-          ),
+        ),
+        Text(
+          "Device's angle to Qibla",
+          style: AppColors()
+              .customTextStyleRegular10(color: AppColors.black)
+              .copyWith(fontSize: getFont(14)),
+        ),
       ],
     );
   }
 
   Widget _buildInstruction(double angle) {
-    bool onTarget = angle < 5 || angle > 355;
-    String text = onTarget ? 'Congratulations! You are facing the Qibla. ✓'
-        : (angle <= 180 ? 'Rotate ${angle.toStringAsFixed(0)}° to the Right' : 'Rotate ${(360 - angle).toStringAsFixed(0)}° to the Left');
+    final bool onTarget = angle < 5 || angle > 355;
+    final double shortAngle = angle <= 180 ? angle : 360 - angle;
+    final String direction = angle <= 180 ? 'Right' : 'Left';
+    final String text = onTarget
+        ? 'Congratulations! You are facing the Qibla. ✓'
+        : 'Rotate ${shortAngle.toStringAsFixed(0)}° to the $direction';
 
     return AnimatedContainer(
-      duration:  Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 300),
       width: getWidth(300),
       height: getHeight(50),
-      margin:  EdgeInsets.symmetric(
-        horizontal: getWidth(36),
-        ),
-      padding:  EdgeInsets.symmetric(
-         vertical: getHeight(18),
-         ),
+      margin: EdgeInsets.symmetric(horizontal: getWidth(36)),
+      padding: EdgeInsets.symmetric(vertical: getHeight(18)),
       decoration: BoxDecoration(
         color: onTarget
             ? const Color(0xFF2ECC71).withOpacity(0.20)
             : const Color(0xFF56C8C8).withOpacity(0.20),
         borderRadius: BorderRadius.circular(20),
-       
       ),
-      child: Text(text, textAlign: TextAlign.center,
-          style: AppColors().customTextStyleRegular10(
-          color:AppColors.black ).copyWith(
-            fontSize: getFont(12)
-          ),)
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: AppColors()
+            .customTextStyleRegular10(color: AppColors.black)
+            .copyWith(fontSize: getFont(12)),
+      ),
     );
   }
 
   Widget _buildKaabaImage() {
     return ClipRRect(
-      borderRadius:  BorderRadius.only(
-        bottomLeft: Radius.circular(24), 
-        bottomRight: Radius.circular(24)),
+      borderRadius: const BorderRadius.only(
+        bottomLeft: Radius.circular(24),
+        bottomRight: Radius.circular(24),
+      ),
       child: SizedBox(
-        width: double.infinity, 
+        width: double.infinity,
         height: getHeight(200),
-          child: Image.asset('assets/images/makka.png', 
-          fit: BoxFit.cover, errorBuilder: (c, e, s) => 
-          const Center(
-            child: Text("Error loading image")))),
+        child: Image.asset(
+          'assets/images/makka.png',
+          fit: BoxFit.cover,
+          errorBuilder: (c, e, s) =>
+              const Center(child: Text("Error loading image")),
+        ),
+      ),
     );
   }
 
@@ -464,19 +500,24 @@ class QiblaScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-             Text('⚠️', style: TextStyle(fontSize: getFont(48))),
-             SizedBox(height: getHeight(16)),
-            Text(msg, textAlign: TextAlign.center,
-             style:  TextStyle(
-              fontSize: getFont(16), 
-              color: Color(0xFF444444),
-              )),
-             SizedBox(height: getHeight(24)),
+            Text('⚠️', style: TextStyle(fontSize: getFont(48))),
+            SizedBox(height: getHeight(16)),
+            Text(
+              msg,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: getFont(16),
+                color: const Color(0xFF444444),
+              ),
+            ),
+            SizedBox(height: getHeight(24)),
             ElevatedButton(
-              onPressed: () => context.read<QiblaCubit>().fetchLocationFromGPS(),
+              onPressed: () =>
+                  context.read<QiblaCubit>().fetchLocationFromGPS(),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF5BBCB0),
-                 foregroundColor: Colors.white),
+                foregroundColor: Colors.white,
+              ),
               child: const Text('Try Again'),
             ),
           ],
@@ -485,7 +526,8 @@ class QiblaScreen extends StatelessWidget {
     );
   }
 }
-// ── Qibla Angle Calculator ─────────────────────────────────
+
+// ── Qibla Angle Calculator ──────────────────────────────────
 class QiblaCalculator {
   static const double _kaabaLat = 21.4225;
   static const double _kaabaLng = 39.8262;
@@ -502,8 +544,11 @@ class QiblaCalculator {
   }
 }
 
-
+// ── Ring Painter ────────────────────────────────────────────
 class _RingPainter extends CustomPainter {
+  final double heading;
+  const _RingPainter({required this.heading});
+
   @override
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
@@ -511,29 +556,24 @@ class _RingPainter extends CustomPainter {
     const outerR = 140.0;
     const innerR = 112.0;
 
-    canvas.drawCircle(Offset(cx, cy), outerR,
-        Paint()..color = const Color(0xFF5BBCB0));
-    canvas.drawCircle(Offset(cx, cy), innerR,
-        Paint()..color = Colors.white);
+    canvas.drawCircle(
+        Offset(cx, cy), outerR, Paint()..color = const Color(0xFF5BBCB0));
+    canvas.drawCircle(Offset(cx, cy), innerR, Paint()..color = Colors.white);
 
-    // Gear teeth
     final toothPaint = Paint()..color = const Color(0xFF5BBCB0);
     for (int i = 0; i < 36; i++) {
       final a = i * 2 * math.pi / 36;
       final path = Path()
         ..moveTo(cx + (outerR - 1) * math.cos(a),
             cy + (outerR - 1) * math.sin(a))
-        ..lineTo(
-            cx + (outerR + 11) * math.cos(a - 0.065),
+        ..lineTo(cx + (outerR + 11) * math.cos(a - 0.065),
             cy + (outerR + 11) * math.sin(a - 0.065))
-        ..lineTo(
-            cx + (outerR + 11) * math.cos(a + 0.065),
+        ..lineTo(cx + (outerR + 11) * math.cos(a + 0.065),
             cy + (outerR + 11) * math.sin(a + 0.065))
         ..close();
       canvas.drawPath(path, toothPaint);
     }
 
-    // Tick marks
     final tickPaint = Paint()
       ..color = const Color(0xFF2A6060)
       ..style = PaintingStyle.stroke;
@@ -549,13 +589,12 @@ class _RingPainter extends CustomPainter {
       );
     }
 
-    // N S E W
     final tp = TextPainter(textDirection: TextDirection.ltr);
     final labels = {
       'N': 0.0,
       'E': math.pi / 2,
       'S': math.pi,
-      'W': 3 * math.pi / 2
+      'W': 3 * math.pi / 2,
     };
     labels.forEach((lbl, angle) {
       final r = innerR - 20;
@@ -579,11 +618,14 @@ class _RingPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_) => false;
+  bool shouldRepaint(_RingPainter old) => old.heading != heading;
 }
 
 // ── Needle Painter ──────────────────────────────────────────
 class _NeedlePainter extends CustomPainter {
+  final double heading;
+  const _NeedlePainter({required this.heading});
+
   @override
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
@@ -609,11 +651,14 @@ class _NeedlePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_) => false;
+  bool shouldRepaint(_NeedlePainter old) => old.heading != heading;
 }
 
 // ── Arrow Tip Painter ───────────────────────────────────────
 class _ArrowTipPainter extends CustomPainter {
+  final bool isAligned;
+  const _ArrowTipPainter({required this.isAligned});
+
   @override
   void paint(Canvas canvas, Size size) {
     canvas.drawPath(
@@ -622,12 +667,14 @@ class _ArrowTipPainter extends CustomPainter {
         ..lineTo(0, size.height)
         ..lineTo(size.width, size.height)
         ..close(),
-      Paint()..color = const Color(0xFFD4A017),
+      Paint()
+        ..color =
+            isAligned ? const Color(0xFF2ECC71) : const Color(0xFFD4A017),
     );
   }
 
   @override
-  bool shouldRepaint(_) => false;
+  bool shouldRepaint(_ArrowTipPainter old) => old.isAligned != isAligned;
 }
 
 // ── Background Islamic Pattern ──────────────────────────────
@@ -648,8 +695,9 @@ class _BgPatternPainter extends CustomPainter {
           canvas.drawLine(
             Offset(x + 20 * math.cos(a), y + 20 * math.sin(a)),
             Offset(
-                x + 34 * math.cos(a + math.pi / 8),
-                y + 34 * math.sin(a + math.pi / 8)),
+              x + 34 * math.cos(a + math.pi / 8),
+              y + 34 * math.sin(a + math.pi / 8),
+            ),
             paint,
           );
         }

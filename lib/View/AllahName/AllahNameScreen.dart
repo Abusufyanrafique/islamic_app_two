@@ -62,15 +62,18 @@ class AllahNamesScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: const Color(0xffF5F5F5),
         appBar: AppBar(
-          iconTheme: const IconThemeData(color: Colors.white),
-          backgroundColor: AppColors.primaryColor,
+          // iconTheme: const IconThemeData(color: Colors.white),
+        bottom: PreferredSize(
+    preferredSize: const Size.fromHeight(0.12),
+    child: Container(
+      color: const Color(0xFF6B7678),
+      height: 0.12,
+    ),
+  ),
           title:  Text(
             "99 Names of Allah",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: getFont(18),
-              fontWeight: FontWeight.bold,
-            ),
+            style: AppColors().customTextStyleBold16(
+              color:AppColors.black )
           ),
           centerTitle: true,
         ),

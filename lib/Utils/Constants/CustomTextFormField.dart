@@ -36,7 +36,7 @@ class CustomTextField extends StatelessWidget {
       children: [
         Text(title,
         style: AppColors().customTextStyle12(
-          color:AppColors.black,
+          color:Color(0xFF636366),
            ).copyWith(
             fontSize: getFont(14)
            )
@@ -126,7 +126,7 @@ class CustomIconTextField extends StatelessWidget {
           decoration:  InputDecoration(
             icon:Icon(icon),
             hintText: hinttext,
-            hintStyle: AppColors().customTextStyleBold16(color: AppColors.black),
+            hintStyle: AppColors().customTextStyleBold16(color:Color(0xFF636366)),
            fillColor: AppColors.white,
             filled: true,
             border: InputBorder.none,
