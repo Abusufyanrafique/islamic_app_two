@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -211,8 +210,6 @@ class SurahCard extends StatelessWidget {
                         height: getHeight(40), 
                         width: getWidth(40),
                         ),
-                      //  Image.asset('assets/icons/Vector (5).svg',height: 40, width: 40),
-                      //Image.asset(AllImages.paranum, height: 40, width: 40),
                       Text(
                         index.toString(),
                         style:  TextStyle(
@@ -277,7 +274,6 @@ class _JuzListScreensState extends State<JuzListScreens>
   TabController? _tabController;
   bool showSurahTab = false;
   int selectedJuz = 1;
-  // Surahmodelsss? selectedSurah;
 
   @override
   void initState() {
@@ -296,7 +292,6 @@ class _JuzListScreensState extends State<JuzListScreens>
     setState(() {
       selectedJuz = juzNumber;
       showSurahTab = true;
-      //selectedSurah = null;
       _tabController!.index = 1;
     });
   }
@@ -309,10 +304,6 @@ class _JuzListScreensState extends State<JuzListScreens>
         builder: (_) => SurahDetailssScreen(surah: surah),
       ),
     );
-    // setState(() {
-    //   selectedSurah = surah;
-    //   _tabController!.index = 1;
-    // });
   }
 
   @override
@@ -366,7 +357,7 @@ class _JuzListScreensState extends State<JuzListScreens>
                         ),
                       ),
 
-                      SizedBox(width: getWidth(10)), // Thora gap
+                      SizedBox(width: getWidth(10)),
 
                       
                       Expanded(
@@ -375,7 +366,6 @@ class _JuzListScreensState extends State<JuzListScreens>
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Bismillah SVG ko responsive banane ke liye
                             FittedBox(
                               fit: BoxFit.scaleDown,
                               child: SvgPicture.asset(
@@ -389,7 +379,7 @@ class _JuzListScreensState extends State<JuzListScreens>
 
                             Text(
                               AllText.quranKareem,
-                              maxLines: 1, // Text cut na ho
+                              maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: AppColors().customTextStyleBold16(
                                 color: AppColors.black,
@@ -424,7 +414,6 @@ class _JuzListScreensState extends State<JuzListScreens>
                 controller: _tabController,
                 onTap: (index) {
                   if (index == 1 && !showSurahTab) {
-                    // Surah tab hidden hai to wapas Para tab par raho
                     _tabController!.animateTo(0);
                   }
                 },
@@ -439,7 +428,7 @@ class _JuzListScreensState extends State<JuzListScreens>
                 controller: _tabController,
                 physics: showSurahTab
                     ? const AlwaysScrollableScrollPhysics()
-                    : const NeverScrollableScrollPhysics(), // Para tab pe swipe band
+                    : const NeverScrollableScrollPhysics(),
                 children: [
                   // ===== Para Tab =====
                   ListView.builder(
@@ -458,14 +447,11 @@ class _JuzListScreensState extends State<JuzListScreens>
                   ),
 
                   // ===== Surah Tab =====
-                  //   selectedSurah == null
-                  // ?
                   JuzDetailScreen(
                     key: ValueKey(selectedJuz),
                     juzNumber: selectedJuz,
                     onSurahTap: onSurahTap,
                   )
-                  // : SurahDetailssScreen(surah: selectedSurah!),
                 ],
               ),
 
@@ -503,12 +489,12 @@ class _JuzDetailScreenState extends State<JuzDetailScreen> {
     _loadJuz();
   }
   Future<void> _loadJuz() async {
-    if (!mounted) return; // ✅
+    if (!mounted) return;
     setState(() => _loading = true);
 
     final result = await QuranApiService.fetchJuzDetail(widget.juzNumber);
 
-    if (!mounted) return; // 
+    if (!mounted) return;
 
     setState(() {
       _data = result;
@@ -521,23 +507,6 @@ class _JuzDetailScreenState extends State<JuzDetailScreen> {
       );
     }
   }
-  // Future<void> _loadJuz() async {
-  //   setState(() => _loading = true);
-  //   final result = await QuranApiService.fetchJuzDetail(widget.juzNumber);
-  //   if (result != null) {
-  //     setState(() {
-  //       _data = result;
-  //       _loading = false;
-  //     });
-  //   } else {
-  //     setState(() => _loading = false);
-  //     if (mounted) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(content: Text("Failed to load Juz")),
-  //       );
-  //     }
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -597,8 +566,6 @@ class _JuzDetailScreenState extends State<JuzDetailScreen> {
                           alignment: Alignment.center,
                           children: [
                             SvgPicture.asset(AllImages.numcover,height: 40, width: 40),
-                            //  Image.asset('assets/icons/Vector (5).svg',height: 40, width: 40),
-                            //Image.asset(AllImages.paranum, height: 40, width: 40),
                             Text(
                               '${s.number}',
                               style:  TextStyle(
@@ -633,16 +600,6 @@ class _JuzDetailScreenState extends State<JuzDetailScreen> {
                             ],
                           ),
                         ),
-
-                        // Arabic Name
-                        // Text(
-                        //   '$}',
-                        //   style: const TextStyle(
-                        //     fontSize: 20,
-                        //     color: Color(0xff5BC0BE),
-                        //     fontWeight: FontWeight.w600,
-                        //   ),
-                        // ),
                       ],
                     ),
                   ),
@@ -658,8 +615,6 @@ class _JuzDetailScreenState extends State<JuzDetailScreen> {
     );
   }
 }
-
-
 class SurahDetailssScreen extends StatefulWidget {
   final Surahmodelsss surah;
 
@@ -676,6 +631,11 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
   bool _isPlaying = false;
   int? _loadingAyahNumber;
 
+  // ── Bismillah audio fix: state to chain Bismillah -> actual Ayah 1 ──
+  static const String _bismillahAudioUrl =
+      "https://cdn.islamic.network/quran/audio/128/ar.alafasy/1.mp3";
+  bool _awaitingBismillahThenAyah = false;
+  AyahModel? _pendingAyahAfterBismillah;
 
   final ValueNotifier<Duration> _positionNotifier = ValueNotifier(Duration.zero);
   final ValueNotifier<Duration> _durationNotifier = ValueNotifier(Duration.zero);
@@ -685,6 +645,107 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
   StreamSubscription? _completeSub;
   StreamSubscription? _playerStateSub;
 
+  // ── Bismillah handling (FIX) ─────────────────────────────────────
+  // API text for ayah 1 of most surahs (except Al-Fatiha & At-Tawbah)
+  // comes bundled as "Bismillah + actual ayah 1" in a single string,
+  // but the per-ayah audio only contains the actual ayah 1 recitation.
+  // That mismatch is what was showing on screen. We now detect and
+  // separate the Bismillah so the displayed ayah text matches the audio,
+  // AND we play the Bismillah audio first, then chain into the actual
+  // ayah 1 audio automatically.
+  static const List<String> _bismillahVariants = [
+    "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+    "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
+    "بسم الله الرحمن الرحيم",
+  ];
+
+  String _removeDiacritics(String input) {
+    // Strips Arabic harakat/tashkeel marks for loose comparison
+    final regex = RegExp(
+      r'[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED]',
+    );
+    return input.replaceAll(regex, '');
+  }
+
+  bool _isBismillahExcludedSurah(int? surahNumber) {
+    // Surah 1 (Al-Fatiha): Bismillah IS ayah 1 -> don't touch.
+    // Surah 9 (At-Tawbah): has no Bismillah at all -> don't touch.
+    return surahNumber == 1 || surahNumber == 9;
+  }
+
+ bool _hasBismillahPrefix(
+  String text,
+  int? surahNumber,
+  int? numberInSurah,
+) {
+  if (numberInSurah != 1) return false;
+
+  // Al-Fatiha = Bismillah itself is Ayah 1
+  // At-Tawbah = no Bismillah
+  if (_isBismillahExcludedSurah(surahNumber)) {
+    return false;
+  }
+
+  final normalizedText = _removeDiacritics(text)
+      .replaceAll('ٱ', 'ا')
+      .replaceAll('أ', 'ا')
+      .replaceAll('إ', 'ا')
+      .replaceAll('آ', 'ا')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
+
+  const normalizedBismillah =
+      'بسم الله الرحمن الرحيم';
+
+  return normalizedText.startsWith(normalizedBismillah);
+}
+
+  /// Returns the ayah text with the Bismillah prefix removed (if present),
+  /// so what's shown matches what the per-ayah audio actually recites.
+ String _stripBismillahPrefix(
+  String text,
+  int? surahNumber,
+  int? numberInSurah,
+) {
+  if (!_hasBismillahPrefix(
+    text,
+    surahNumber,
+    numberInSurah,
+  )) {
+    return text;
+  }
+
+  final trimmed = text.trim();
+
+  // Exact Bismillah variants ko check karo
+  for (final variant in _bismillahVariants) {
+    if (trimmed.startsWith(variant)) {
+      return trimmed.substring(variant.length).trim();
+    }
+  }
+
+  // Arabic text ko normalize karo
+  final normalizedText = _removeDiacritics(trimmed)
+      .replaceAll('ٱ', 'ا')
+      .replaceAll('أ', 'ا')
+      .replaceAll('إ', 'ا')
+      .replaceAll('آ', 'ا')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
+
+  const bismillah = 'بسم الله الرحمن الرحيم';
+
+  if (normalizedText.startsWith(bismillah)) {
+    final words = trimmed.split(RegExp(r'\s+'));
+
+    if (words.length > 4) {
+      return words.sublist(4).join(' ').trim();
+    }
+  }
+
+  // IMPORTANT: fallback return
+  return text;
+}
   @override
   void initState() {
     super.initState();
@@ -698,8 +759,19 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
       _positionNotifier.value = p;
     });
 
+    // ✅ FIX: single onPlayerComplete listener that chains
+    // Bismillah audio -> actual Ayah 1 audio, otherwise goes to next ayah.
     _completeSub = audioHandler.player.onPlayerComplete.listen((_) {
-      _playNextAyah();
+      if (_awaitingBismillahThenAyah && _pendingAyahAfterBismillah != null) {
+        final ayah = _pendingAyahAfterBismillah!;
+        _awaitingBismillahThenAyah = false;
+        _pendingAyahAfterBismillah = null;
+        if (ayah.audio != null) {
+          _playActualAyahAudio(ayah.audio!, ayah);
+        }
+      } else {
+        _playNextAyah();
+      }
     });
 
     _playerStateSub = audioHandler.player.onPlayerStateChanged.listen((state) {
@@ -752,7 +824,52 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
     }
   }
 
+  /// Entry point used everywhere (tap on ayah, next/previous).
+  /// If this ayah needs a Bismillah intro, play Bismillah first,
+  /// then automatically chain into the actual ayah audio.
   Future<void> _playAudio(String url, AyahModel ayah) async {
+    final needsBismillahIntro = _hasBismillahPrefix(
+      ayah.text ?? "",
+      widget.surah.number,
+      ayah.numberInSurah,
+    );
+
+    if (needsBismillahIntro) {
+      _awaitingBismillahThenAyah = true;
+      _pendingAyahAfterBismillah = ayah;
+
+      if (mounted) {
+        setState(() {
+          _loadingAyahNumber = ayah.number;
+          _playingAyah = ayah;
+        });
+      }
+      _positionNotifier.value = Duration.zero;
+      _durationNotifier.value = Duration.zero;
+
+      // Clear any stray next/previous/complete callbacks from a
+      // previous ayah while the Bismillah intro plays.
+      audioHandler.onTrackComplete = null;
+
+      try {
+        await audioHandler.playAyah(
+          _bismillahAudioUrl,
+          "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+          widget.surah.englishName ?? 'Quran',
+        );
+      } catch (e) {
+        if (mounted) setState(() => _loadingAyahNumber = null);
+        _awaitingBismillahThenAyah = false;
+        _pendingAyahAfterBismillah = null;
+      }
+      return; // rest handled by the onPlayerComplete listener above
+    }
+
+    await _playActualAyahAudio(url, ayah);
+  }
+
+  /// Plays the actual per-ayah recitation (no Bismillah involved).
+  Future<void> _playActualAyahAudio(String url, AyahModel ayah) async {
     if (mounted) {
       setState(() {
         _loadingAyahNumber = ayah.number;
@@ -772,9 +889,6 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _loadingAyahNumber = null);
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   const SnackBar(content: Text("Audio load nahi ho saka")),
-        // );
       }
       return;
     }
@@ -805,6 +919,7 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
   @override
   Widget build(BuildContext context) {
     final ayahs = _data?.data?.ayahs ?? [];
+    final surahNumber = widget.surah.number;
 
     return Scaffold(
      appBar: AppBar(
@@ -842,6 +957,17 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
                 final isPlaying =
                     _playingAyah?.number == ayah.number && _isPlaying;
                 final isLoadingThis = _loadingAyahNumber == ayah.number;
+
+                // ── FIX: separate Bismillah from ayah 1 text ─────────
+                final rawText = ayah.text ?? "";
+                final showBismillahHeader = _hasBismillahPrefix(
+                  rawText,
+                  surahNumber,
+                  ayah.numberInSurah,
+                );
+                final displayText = showBismillahHeader
+                    ? _stripBismillahPrefix(rawText, surahNumber, ayah.numberInSurah)
+                    : rawText;
 
                 return Container(
                   key: ValueKey(ayah.number),
@@ -935,9 +1061,25 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
                           )
                         ],
                       ),
+
+                      // ── FIX: Bismillah shown separately, above ayah 1 ──
+                      if (showBismillahHeader) ...[
+                        SizedBox(height: getHeight(14)),
+                        Center(
+                          child: Text(
+                            _bismillahVariants.first,
+                            style: AppColors().customTextStyleAmiri22(
+                              color: const Color(0xff5BC0BE),
+                            ),
+                            textDirection: TextDirection.rtl,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+
                       SizedBox(height: getHeight(16)),
                       Text(
-                        ayah.text ?? "",
+                        displayText,
                         style: AppColors().customTextStyleAmiri24(
                             color: Colors.black87, height: getHeight(2.5)),
                         textDirection: TextDirection.rtl,
@@ -950,8 +1092,7 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
             ),
           ),
 
-          // ── Mini Player — alag widget, taake position/duration ki har
-          // tick sirf isi ko rebuild kare, poori screen ko nahi ─────────
+          // ── Mini Player ─────────────────────────────────────────
           if (_playingAyah != null)
             _MiniPlayerBar(
               revelationType: widget.surah.revelationType ?? '',
@@ -1120,7 +1261,6 @@ class _MiniPlayerBar extends StatelessWidget {
 class QuranAudioHandler extends BaseAudioHandler {
   final AudioPlayer _player = AudioPlayer();
 
-  // Player publicly expose karo taake SurahScreen direct listen kar sake
   AudioPlayer get player => _player;
   VoidCallback? onTrackComplete;
   VoidCallback? onSkipToNext;
@@ -1196,11 +1336,3 @@ class QuranAudioHandler extends BaseAudioHandler {
   @override
   Future<void> seek(Duration position) => _player.seek(position);
 }
-
-
-
-
-
-
-
-

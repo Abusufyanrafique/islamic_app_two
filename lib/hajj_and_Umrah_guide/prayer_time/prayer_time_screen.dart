@@ -433,6 +433,7 @@ class _PrayerTimeScreen1State extends State<PrayerTimeScreen1> {
             ),
           ),
         ),
+        
         SizedBox(width: getWidth(24)),
       ],
     );

@@ -214,6 +214,14 @@ class AllDuaScreen extends StatelessWidget {
             color: Colors.black,
             )
         ),
+
+         bottom: PreferredSize(
+    preferredSize: const Size.fromHeight(0.12),
+    child: Container(
+      color: const Color(0xFF6B7678),
+      height: 0.12,
+    ),
+  ),
       ),
       body: Padding(
         padding:  EdgeInsets.symmetric(
@@ -664,11 +672,10 @@ class DuaCard extends StatelessWidget {
             ),
             child: Text(
               dua.label,
-              style: TextStyle(
-                fontSize: getFont(11),
+              style: AppColors().customTextStyle14().copyWith(
                 fontWeight: FontWeight.w600,
-                color: dua.labelColor,
-              ),
+                fontSize: getFont(11),
+                color: dua.labelColor,)
             ),
           ),
            SizedBox(height: getHeight(12)),
@@ -707,8 +714,8 @@ class DuaCard extends StatelessWidget {
           // Roman Urdu translation
           Text(
             dua.translation,
-            style:  TextStyle(
-              fontSize: getFont(13),
+            style:  AppColors().customTextStyle14().copyWith(
+               fontSize: getFont(13),
               height: getHeight(1.6),
               color: Color(0xFF666666),
             ),

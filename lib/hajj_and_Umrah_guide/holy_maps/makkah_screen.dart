@@ -140,10 +140,9 @@ class MakkahScreen extends StatelessWidget {
             SizedBox(height: getHeight(20)),
             Text(
               AllText.categories,
-              style:AppColors().customTextStyle18(
-                 ).copyWith(
-                  fontSize: getFont(26)
-                 )
+               style:AppColors().customTextStyle18().copyWith(
+                fontSize: getFont(16)
+              )
             ),
             SizedBox(height: getHeight(12)),
             Expanded(

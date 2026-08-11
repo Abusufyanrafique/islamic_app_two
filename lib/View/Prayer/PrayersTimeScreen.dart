@@ -407,6 +407,7 @@ class PrayerTimeScreen extends StatelessWidget {
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+
               Text(AllText.prayerstime,
                   style: AppColors().customTextStyleBold16()),
               SizedBox(height: getHeight(5)),
@@ -517,6 +518,7 @@ class PrayerTimeScreen extends StatelessWidget {
                 ),
               ),
             ),
+            
           ],
         ),
       ),

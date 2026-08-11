@@ -549,7 +549,7 @@ class DuasScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      // backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -557,14 +557,21 @@ class DuasScreen extends StatelessWidget {
         //   icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1A1A)),
         //   onPressed: () => Navigator.pop(context),
         // ),
+        centerTitle: true,
         title: Text(
           '${subject.icon} ${subject.name} of Duas ',
-          style:  TextStyle(
-            fontSize: getFont(18),
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF1A1A1A),
+          style:AppColors().customTextStyleBold16().copyWith(
+            fontSize: getFont(16),
           ),
+    
         ),
+         bottom: PreferredSize(
+    preferredSize: const Size.fromHeight(0.12),
+    child: Container(
+      color: const Color(0xFF6B7678),
+      height: 0.12,
+    ),
+  ),
       ),
       body: SafeArea(
         child: ListView(
@@ -573,7 +580,11 @@ class DuasScreen extends StatelessWidget {
             // Subtitle
             Text(
               subject.subtitle,
-              style:  TextStyle(fontSize: getFont(13), color: Color(0xFF666666)),
+              style:AppColors().customTextStyle14(
+                color: Color(0xFF666666),
+              ).copyWith(
+                fontSize: getFont(12)
+              )
             ),
              SizedBox(height: getHeight(16)),
             // Dua Cards
