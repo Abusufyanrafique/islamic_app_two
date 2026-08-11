@@ -210,15 +210,13 @@ class _JuzDetailScreenState extends State<JuzDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-         // centerTitle: true,
+         centerTitle: true,
       title:  Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             widget.juz.subname,
-            style:  TextStyle(
-              fontSize: getFont(18), 
-              fontWeight: FontWeight.bold),
+            style:  AppColors().customTextStyle18()
           ),
           Text(
             widget.juz.name,
@@ -244,7 +242,6 @@ class _JuzDetailScreenState extends State<JuzDetailScreen> {
           return SingleChildScrollView( // Scroll karne ke liye
             padding:  EdgeInsets.all(16),
             child:
-
 
             Text(
               paragraphText,

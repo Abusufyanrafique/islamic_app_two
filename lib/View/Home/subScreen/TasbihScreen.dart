@@ -102,9 +102,10 @@ class TasbihScreen extends StatelessWidget {
         appBar: AppBar(
           title:  Text(
             "Tasbih Counter",
-           style:AppColors().customTextStyle18().copyWith(
-            fontSize: getFont(20)
-           )),
+          style:AppColors().customTextStyleBold16().copyWith(
+            fontSize: getFont(16),
+          )
+           ),
           centerTitle: true,
           
         ),

@@ -145,11 +145,9 @@ class MadinaScreen extends StatelessWidget {
         ),
         title: Text(
           'Madina',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: getFont(18),
-            fontWeight: FontWeight.w600,
-          ),
+          style:AppColors().customTextStyleBold16().copyWith(
+            fontSize: getFont(16),
+          )
         ),
         centerTitle: true,
       ),
@@ -163,10 +161,7 @@ class MadinaScreen extends StatelessWidget {
             SizedBox(height: getHeight(20)),
             Text(
               'Categories',
-              style: TextStyle(
-                fontSize: getFont(18),
-                fontWeight: FontWeight.bold,
-              ),
+              style: AppColors().customTextStyle18()
             ),
             SizedBox(height: getHeight(12)),
             Expanded(

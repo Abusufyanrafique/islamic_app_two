@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:local_notification/Utils/Constants/AllText.dart';
 
@@ -321,9 +322,22 @@ class _JuzListScreensState extends State<JuzListScreens>
       length: 2,
       child: Scaffold(
 
-        appBar: AppBar(
-          title: Text(AllText.alQuran),
-        ),
+       appBar: AppBar(
+  title: Text(
+    "Al Quran",
+   style:AppColors().customTextStyleBold16().copyWith(
+            fontSize: getFont(16),
+          )
+  ),
+  centerTitle: true,
+  bottom: PreferredSize(
+    preferredSize: const Size.fromHeight(0.12),
+    child: Container(
+      color: const Color(0xFF6B7678),
+      height: 0.12,
+    ),
+  ),
+),
         body: Padding(
           padding:  EdgeInsets.symmetric(
             horizontal: getWidth(16),
@@ -346,7 +360,7 @@ class _JuzListScreensState extends State<JuzListScreens>
                       Expanded(
                         flex: 2, 
                         child: SvgPicture.asset(
-                          AllImages.alquranscreen,
+                          "assets/icons/Quranpakiocn.svg",
                           height: getHeight(150), 
                           fit: BoxFit.contain,
                         ),
@@ -356,7 +370,7 @@ class _JuzListScreensState extends State<JuzListScreens>
 
                       
                       Expanded(
-                        flex: 2, // Text area ko zyada space di
+                        flex: 2, 
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -458,12 +472,6 @@ class _JuzListScreensState extends State<JuzListScreens>
 
               )
 
-
-
-
-
-
-
             ],
           ),
         ),
@@ -500,7 +508,7 @@ class _JuzDetailScreenState extends State<JuzDetailScreen> {
 
     final result = await QuranApiService.fetchJuzDetail(widget.juzNumber);
 
-    if (!mounted) return; // ✅ async ke baad check
+    if (!mounted) return; // 
 
     setState(() {
       _data = result;
@@ -646,82 +654,12 @@ class _JuzDetailScreenState extends State<JuzDetailScreen> {
 
 
 
-        GestureDetector(
-          onTap: () => widget.onSurahTap(s),
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.symmetric(
-                horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 16,
-                  backgroundColor: const Color(0xFFE6F1FB),
-                  child: Text(
-                    '${s.number}',
-                    style: const TextStyle(
-                      color: Color(0xFF0C447C),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        s.englishName ?? '',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
-                      ),
-                      Text(
-                        s.englishNameTranslation ?? '',
-                        style: TextStyle(
-                          color: Colors.grey.shade500,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // ✅ Sunnah Button - Surah tap karne ke baad dikhega
-                ElevatedButton.icon(
-                  onPressed: () =>
-                      widget.onSurahTap(s),
-                  icon: const Icon(Icons.headphones, size: 14),
-                  label: const Text(
-                    'سنیں',
-                    style: TextStyle(fontSize: 12),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1A3C5E),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 6),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
       }).toList(),
     );
   }
 }
+
+
 class SurahDetailssScreen extends StatefulWidget {
   final Surahmodelsss surah;
 
@@ -730,14 +668,17 @@ class SurahDetailssScreen extends StatefulWidget {
   @override
   State<SurahDetailssScreen> createState() => _SurahDetailssScreenState();
 }
+
 class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
   QuranResponseModel? _data;
   bool _loading = true;
   AyahModel? _playingAyah;
-  // ❌ REMOVED: final AudioPlayer _audioPlayer = AudioPlayer();
-  Duration _audioDuration = Duration.zero;
-  Duration _audioPosition = Duration.zero;
   bool _isPlaying = false;
+  int? _loadingAyahNumber;
+
+
+  final ValueNotifier<Duration> _positionNotifier = ValueNotifier(Duration.zero);
+  final ValueNotifier<Duration> _durationNotifier = ValueNotifier(Duration.zero);
 
   StreamSubscription? _durationSub;
   StreamSubscription? _positionSub;
@@ -749,13 +690,12 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
     super.initState();
     _loadSurah();
 
-    // ✅ audioHandler.player se listen karo
     _durationSub = audioHandler.player.onDurationChanged.listen((d) {
-      if (mounted) setState(() => _audioDuration = d);
+      _durationNotifier.value = d;
     });
 
     _positionSub = audioHandler.player.onPositionChanged.listen((p) {
-      if (mounted) setState(() => _audioPosition = p);
+      _positionNotifier.value = p;
     });
 
     _completeSub = audioHandler.player.onPlayerComplete.listen((_) {
@@ -763,7 +703,14 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
     });
 
     _playerStateSub = audioHandler.player.onPlayerStateChanged.listen((state) {
-      if (mounted) setState(() => _isPlaying = state == PlayerState.playing);
+      if (!mounted) return;
+      setState(() {
+        _isPlaying = state == PlayerState.playing;
+
+        if (state == PlayerState.playing) {
+          _loadingAyahNumber = null;
+        }
+      });
     });
   }
 
@@ -806,14 +753,32 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
   }
 
   Future<void> _playAudio(String url, AyahModel ayah) async {
-    await audioHandler.playAyah(
-      url,
-      "آیت ${ayah.numberInSurah}",
-      widget.surah.englishName ?? 'Quran',
-    );
-    if (mounted) setState(() => _playingAyah = ayah);
+    if (mounted) {
+      setState(() {
+        _loadingAyahNumber = ayah.number;
+        _playingAyah = ayah;
+      });
+    }
 
-    // ✅ Callbacks
+    _positionNotifier.value = Duration.zero;
+    _durationNotifier.value = Duration.zero;
+
+    try {
+      await audioHandler.playAyah(
+        url,
+        "آیت ${ayah.numberInSurah}",
+        widget.surah.englishName ?? 'Quran',
+      );
+    } catch (e) {
+      if (mounted) {
+        setState(() => _loadingAyahNumber = null);
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   const SnackBar(content: Text("Audio load nahi ho saka")),
+        // );
+      }
+      return;
+    }
+
     audioHandler.onSkipToNext = _playNextAyah;
     audioHandler.onSkipToPrevious = _playPreviousAyah;
     audioHandler.onTrackComplete = _playNextAyah;
@@ -825,8 +790,9 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
     _positionSub?.cancel();
     _completeSub?.cancel();
     _playerStateSub?.cancel();
-    audioHandler.onTrackComplete = null; // ✅ cleanup
-    // ❌ _audioPlayer.dispose() nahi — audioHandler ka player hai
+    _positionNotifier.dispose();
+    _durationNotifier.dispose();
+    audioHandler.onTrackComplete = null;
     super.dispose();
   }
 
@@ -841,38 +807,46 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
     final ayahs = _data?.data?.ayahs ?? [];
 
     return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(widget.surah.englishName ?? '',
-                style:  TextStyle(
-                  fontSize: getFont(18), 
-                  fontWeight: FontWeight.bold)),
-            Text(widget.surah.englishNameTranslation ?? '',
-                style:  TextStyle(
-                  fontSize: getFont(14), 
-                  color: Color(0xff5BC0BE))),
-          ],
+     appBar: AppBar(
+  centerTitle: true,
+  toolbarHeight: getHeight(65),
+  title: Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text(
+        widget.surah.englishName ?? '',
+        style:AppColors().customTextStyleBold16()
+      ),
+      SizedBox(height: getHeight(3),),
+      Text(
+        widget.surah.englishNameTranslation ?? '',
+        style: AppColors().customTextStyle14(
+          color: const Color(0xff5BC0BE),
+        ).copyWith(
+          fontSize: getFont(12)
         ),
       ),
+    ],
+  ),
+),
       body: _loading
           ? Center(child: spinkit)
           : Column(
         children: [
           Expanded(
             child: ListView.builder(
-              padding:  EdgeInsets.all(10),
+              padding: EdgeInsets.all(10),
               itemCount: ayahs.length,
               itemBuilder: (context, index) {
                 final ayah = ayahs[index];
                 final isPlaying =
                     _playingAyah?.number == ayah.number && _isPlaying;
+                final isLoadingThis = _loadingAyahNumber == ayah.number;
 
                 return Container(
-                  margin:  EdgeInsets.only(
-                    bottom: getHeight(16)),
-                  padding:  EdgeInsets.all(16),
+                  key: ValueKey(ayah.number),
+                  margin: EdgeInsets.only(bottom: getHeight(16)),
+                  padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
@@ -891,16 +865,18 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
                         children: [
                           Text(
                             "Juz: ${ayah.juz}  |  Page: ${ayah.page}",
-                            style:  TextStyle(
+                            style: TextStyle(
                                 fontSize: getFont(12),
-                                 color: Colors.grey),
+                                 color: Colors.grey,
+                                 ),
                           ),
                           Row(
                             children: [
                               GestureDetector(
-                                onTap: () async {
+                                onTap: isLoadingThis
+                                    ? null
+                                    : () async {
                                   if (_playingAyah?.number == ayah.number) {
-                                    // ✅ Same ayah: toggle
                                     if (_isPlaying) {
                                       await audioHandler.player.pause();
                                     } else {
@@ -919,17 +895,28 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
                                         : const Color(0xff5BC0BE),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: Icon(
-                                    isPlaying ? Icons.pause : Icons.play_arrow,
-                                    color: Colors.white,
-                                    size: 20,
+                                  child: Center(
+                                    child: isLoadingThis
+                                        ? SpinKitFadingCircle(
+                                      color: isPlaying
+                                          ? const Color(0xff5BC0BE)
+                                          : Colors.white,
+                                      size: 20,
+                                    )
+                                        : Icon(
+                                      isPlaying
+                                          ? Icons.pause
+                                          : Icons.play_arrow,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
                                   ),
                                 ),
                               ),
-                               SizedBox(width: getWidth(15)),
+                              SizedBox(width: getWidth(15)),
                               Container(
-                                 width: getWidth(30),
-                                  height: getHeight(30),
+                                width: getWidth(30),
+                                height: getHeight(30),
                                 decoration: BoxDecoration(
                                   color: const Color(0xff5BC0BE),
                                   borderRadius: BorderRadius.circular(20),
@@ -948,12 +935,11 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
                           )
                         ],
                       ),
-                       SizedBox(height: getHeight(16)),
+                      SizedBox(height: getHeight(16)),
                       Text(
                         ayah.text ?? "",
                         style: AppColors().customTextStyleAmiri24(
-                            color: Colors.black87, 
-                            height: getHeight(2.5)),
+                            color: Colors.black87, height: getHeight(2.5)),
                         textDirection: TextDirection.rtl,
                         textAlign: TextAlign.right,
                       ),
@@ -964,64 +950,135 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
             ),
           ),
 
-          // ── Mini Player ──
+          // ── Mini Player — alag widget, taake position/duration ki har
+          // tick sirf isi ko rebuild kare, poori screen ko nahi ─────────
           if (_playingAyah != null)
-            Container(
-              color: AppColors.primaryColor,
-              padding:  EdgeInsets.fromLTRB(14, 8, 14, 12),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.music_note,
-                          color: Colors.white60, size: 18),
-                       SizedBox(width: getWidth(8)),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('${widget.surah.revelationType}',
-                                style:  TextStyle(
-                                    color: Colors.white60,
-                                     fontSize: getFont(11))),
-                            Text(
-                              '${widget.surah.englishName} · آیت ${_playingAyah?.numberInSurah}',
-                              style:  TextStyle(
-                                color: Colors.white,
-                                fontSize: getFont(13),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
+            _MiniPlayerBar(
+              revelationType: widget.surah.revelationType ?? '',
+              englishName: widget.surah.englishName ?? '',
+              numberInSurah: _playingAyah?.numberInSurah,
+              isPlaying: _isPlaying,
+              isLoading: _loadingAyahNumber == _playingAyah?.number,
+              positionNotifier: _positionNotifier,
+              durationNotifier: _durationNotifier,
+              formatDuration: _formatDuration,
+              onPlayPause: () async {
+                if (_isPlaying) {
+                  await audioHandler.player.pause();
+                } else {
+                  await audioHandler.player.resume();
+                }
+              },
+              onSeek: (value) async {
+                await audioHandler.player.seek(Duration(seconds: value.toInt()));
+              },
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+
+class _MiniPlayerBar extends StatelessWidget {
+  final String revelationType;
+  final String englishName;
+  final int? numberInSurah;
+  final bool isPlaying;
+  final bool isLoading;
+  final ValueNotifier<Duration> positionNotifier;
+  final ValueNotifier<Duration> durationNotifier;
+  final String Function(Duration) formatDuration;
+  final VoidCallback onPlayPause;
+  final ValueChanged<double> onSeek;
+
+  const _MiniPlayerBar({
+    required this.revelationType,
+    required this.englishName,
+    required this.numberInSurah,
+    required this.isPlaying,
+    required this.isLoading,
+    required this.positionNotifier,
+    required this.durationNotifier,
+    required this.formatDuration,
+    required this.onPlayPause,
+    required this.onSeek,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.primaryColor,
+      padding: EdgeInsets.fromLTRB(14, 8, 14, 12),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.music_note, 
+              color: Colors.white60, size: 18),
+              SizedBox(width: getWidth(8)),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(revelationType,
+                        style: TextStyle(
+                            color: Colors.white60,
+                             fontSize: getFont(11),
+                             )),
+                    Text(
+                      '$englishName · آیت $numberInSurah',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: getFont(13),
+                        fontWeight: FontWeight.w500,
                       ),
-                      IconButton(
-                        icon: Icon(
-                          _isPlaying
-                              ? Icons.pause_circle_filled
-                              : Icons.play_circle_filled,
-                          color: Colors.white,
-                          size: 32,
-                        ),
-                        onPressed: () async {
-                          if (_isPlaying) {
-                            await audioHandler.player.pause(); 
-                          } else {
-                            await audioHandler.player.resume(); 
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                  Row(
+                    ),
+                  ],
+                ),
+              ),
+              isLoading
+                  ? const Padding(
+                padding: EdgeInsets.all(6.0),
+                child:SpinKitFadingCircle (
+                  color: Colors.white,
+                  size: 18,
+                ),
+              )
+                  : IconButton(
+                icon: Icon(
+                  isPlaying
+                      ? Icons.pause_circle_filled
+                      : Icons.play_circle_filled,
+                  color: Colors.white,
+                  size: 32,
+                ),
+                onPressed: onPlayPause,
+              ),
+            ],
+          ),
+          ValueListenableBuilder<Duration>(
+            valueListenable: positionNotifier,
+            builder: (context, position, _) {
+              return ValueListenableBuilder<Duration>(
+                valueListenable: durationNotifier,
+                builder: (context, duration, __) {
+                  final maxSeconds = duration.inSeconds.toDouble() > 0
+                      ? duration.inSeconds.toDouble()
+                      : 1.0;
+                  final valueSeconds =
+                  position.inSeconds.toDouble().clamp(0, maxSeconds);
+
+                  return Row(
                     children: [
-                      Text(_formatDuration(_audioPosition),
-                          style:  TextStyle(
+                      Text(formatDuration(position),
+                          style: TextStyle(
                               color: Colors.white60,
-                               fontSize: getFont(10))),
-                       SizedBox(width: getWidth(6)),
+                               fontSize: getFont(10),
+                               )),
+                      SizedBox(width: getWidth(6)),
                       Expanded(
                         child: SliderTheme(
                           data: SliderTheme.of(context).copyWith(
@@ -1037,33 +1094,24 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
                           ),
                           child: Slider(
                             min: 0,
-                            max: _audioDuration.inSeconds.toDouble() > 0
-                                ? _audioDuration.inSeconds.toDouble()
-                                : 1,
-                            value: _audioPosition.inSeconds
-                                .toDouble()
-                                .clamp(
-                                0,
-                                _audioDuration.inSeconds.toDouble() > 0
-                                    ? _audioDuration.inSeconds.toDouble()
-                                    : 1),
-                            onChanged: (value) async {
-                              await audioHandler.player.seek(
-                                  Duration(seconds: value.toInt())); 
-                            },
+                            max: maxSeconds,
+                            value: valueSeconds.toDouble(),
+                            onChanged: onSeek,
                           ),
                         ),
                       ),
-                       SizedBox(width:getWidth(6)),
-                      Text(_formatDuration(_audioDuration),
-                          style:  TextStyle(
-                              color: Colors.white60, 
-                              fontSize:getFont(10) )),
+                      SizedBox(width: getWidth(6)),
+                      Text(formatDuration(duration),
+                          style: TextStyle(
+                              color: Colors.white60,
+                               fontSize: getFont(10),
+                               )),
                     ],
-                  ),
-                ],
-              ),
-            ),
+                  );
+                },
+              );
+            },
+          ),
         ],
       ),
     );
@@ -1072,7 +1120,7 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
 class QuranAudioHandler extends BaseAudioHandler {
   final AudioPlayer _player = AudioPlayer();
 
-  // ✅ Player publicly expose karo taake SurahScreen direct listen kar sake
+  // Player publicly expose karo taake SurahScreen direct listen kar sake
   AudioPlayer get player => _player;
   VoidCallback? onTrackComplete;
   VoidCallback? onSkipToNext;
@@ -1095,7 +1143,7 @@ class QuranAudioHandler extends BaseAudioHandler {
             : AudioProcessingState.ready,
       ));
 
-      // ✅ Ayah complete hone par callback fire karo
+  
       if (state == PlayerState.completed) {
         onTrackComplete?.call();
       }

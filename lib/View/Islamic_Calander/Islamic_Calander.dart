@@ -44,9 +44,9 @@ class IslamicCalendar extends StatelessWidget {
           elevation: 0,
           title:  Text(
             "Islamic Calendar",
-             style: AppColors().customTextStyleBold16().copyWith(
-              fontSize: getFont(20)
-             ),
+            style:AppColors().customTextStyleBold16().copyWith(
+            fontSize: getFont(16),
+          )
              
           ),
     bottom: PreferredSize(

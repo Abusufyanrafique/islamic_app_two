@@ -78,10 +78,9 @@ class ZakatScreen extends StatelessWidget {
        appBar: AppBar(
   title: Text(
     "Zakat Calculator",
-    style: AppColors().customTextStyle15().copyWith(
-      color: AppColors.black,
-      fontSize: getFont(16),
-    ),
+    style:AppColors().customTextStyleBold16().copyWith(
+            fontSize: getFont(16),
+          )
   ),
   centerTitle: true,
   bottom: PreferredSize(
@@ -154,7 +153,14 @@ class ZakatScreen extends StatelessWidget {
                    SizedBox(height: getHeight(20)),
 
                   /// Result Title
-                   Text("Total Zakat"),
+                   Text(
+                    "Total Zakat",
+                    style: AppColors().customTextStyle12(
+          color:Color(0xFF636366),
+           ).copyWith(
+            fontSize: getFont(14)
+           )
+                   ),
 
                    SizedBox(height: getHeight(8)),
 
@@ -174,7 +180,7 @@ class ZakatScreen extends StatelessWidget {
                           blurRadius: 4,
                         ),
                       ],
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(6),
                     ),
                     child: Center(
                       child: Text(

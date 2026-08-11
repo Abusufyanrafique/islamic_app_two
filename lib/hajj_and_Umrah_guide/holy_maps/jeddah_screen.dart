@@ -94,8 +94,8 @@ class JeddahScreen extends StatelessWidget {
         ),
         title: Text(
           AllText.jeddah,
-          style:AppColors().customTextStyle18().copyWith(
-            fontSize: getFont(26)
+          style:AppColors().customTextStyleBold16().copyWith(
+            fontSize: getFont(16),
           )
         ),
         centerTitle: true,
@@ -110,10 +110,13 @@ class JeddahScreen extends StatelessWidget {
             SizedBox(height: getHeight(20)),
             Text(
               'Categories',
-              style: TextStyle(
-                fontSize: getFont(18),
-                fontWeight: FontWeight.bold,
-              ),
+              style:AppColors().customTextStyle18().copyWith(
+                fontSize: getFont(16)
+              )
+              //  TextStyle(
+              //   fontSize: getFont(18),
+              //   fontWeight: FontWeight.bold,
+              // ),
             ),
             SizedBox(height: getHeight(12)),
             Expanded(

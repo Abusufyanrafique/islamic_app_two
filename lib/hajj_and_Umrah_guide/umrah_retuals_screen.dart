@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:local_notification/Utils/Constants/AllColors.dart';
 import 'package:local_notification/Utils/Constants/AllImages.dart';
 import 'package:local_notification/Utils/Constants/AllText.dart';
@@ -216,6 +217,7 @@ class _SectionTitle extends StatelessWidget {
 }
 
 /// ------------------ RITUAL CARD ------------------
+/// ------------------ RITUAL CARD ------------------
 class _RitualCard extends StatelessWidget {
   final RitualItem item;
 
@@ -232,28 +234,33 @@ class _RitualCard extends StatelessWidget {
         child: Container(
           height: getHeight(100),
           decoration: BoxDecoration(
+            color: AppColors.white,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: AppColors.resultcontainerboder.withOpacity(0.34),
-            ),
+            // ✅ Border hata di, drop shadow laga di
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF000000).withOpacity(0.25),
+                offset: const Offset(0, 1),
+                blurRadius: 4,
+                spreadRadius: 0,
+              ),
+            ],
           ),
-      
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              
               ClipRRect(
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(10),
                   bottomLeft: Radius.circular(10),
                   topRight: Radius.circular(10),
-                  bottomRight: Radius.circular(10)
+                  bottomRight: Radius.circular(10),
                 ),
                 child: Image.asset(
                   item.imagePath,
                   height: getHeight(100),
                   width: getWidth(103),
-                  fit: BoxFit.cover, 
+                  fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) => Container(
                     height: getHeight(100),
                     width: getWidth(103),
@@ -272,10 +279,13 @@ class _RitualCard extends StatelessWidget {
                   ),
                 ),
               ),
-              // Arrow aur text side par padding
               Padding(
-                padding: EdgeInsets.only(right: getWidth(10)),
-                child: Image(image: AssetImage(AllImages.arrow)),
+                padding: EdgeInsets.only(right: getWidth(20)),
+                child:   SvgPicture.asset(
+                'assets/icons/arrowforward.svg',
+                width: getWidth(20),
+              height: getHeight(20),
+),
               ),
             ],
           ),

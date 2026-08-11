@@ -17,7 +17,9 @@ class HolyMapsScreen extends StatelessWidget {
       backgroundColor: AppColors.white,
       appBar: _buildAppBar(context),
       body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: getWidth(16)),
+        padding: EdgeInsets.symmetric(
+          horizontal: getWidth(16),
+          ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -42,9 +44,9 @@ class HolyMapsScreen extends StatelessWidget {
       ),
       title: Text(
         AllText.holymaps,
-        style: AppColors().customTextStyle18().copyWith(
-          fontSize: getFont(26),
-        ),
+       style:AppColors().customTextStyleBold16().copyWith(
+            fontSize: getFont(16),
+          )
       ),
     );
   }
@@ -166,7 +168,7 @@ class HolyPlaceCard extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(place.title, style: AppColors().customTextStyle18()),
+        Text(place.title, style: AppColors().customTextStyleBold16()),
        
         Spacer(),
         const Icon(
@@ -181,7 +183,9 @@ class HolyPlaceCard extends StatelessWidget {
   Widget _buildSubtitle() {
     return Text(
       place.subtitle,
-      style: AppColors().customTextStyle14()
+      style: AppColors().customTextStyle14().copyWith(
+        fontSize: getFont(12)
+      )
     );
   }
 }
@@ -241,23 +245,25 @@ class HolySearchBar extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            icon: Icon(Icons.menu, color: AppColors.hinttext),
+            icon: Icon(Icons.menu, color: AppColors.white),
             onPressed: onMenuTap,
           ),
           Expanded(
             child: TextField(
               onChanged: onChanged,
-              style: const TextStyle(color: AppColors.hinttext),
+              style: const TextStyle(color: AppColors.white),
               decoration: InputDecoration(
                 hintText: hintText,
-                hintStyle: const TextStyle(color: AppColors.hinttext),
+                hintStyle: AppColors().customTextStyle14(
+                  color: AppColors.white,
+                ),
                 border: InputBorder.none,
               ),
             ),
           ),
           Padding(
             padding: EdgeInsets.only(right: getWidth(16)),
-            child: Icon(Icons.search, color: AppColors.hinttext),
+            child: Icon(Icons.search, color: AppColors.white),
           ),
         ],
       ),

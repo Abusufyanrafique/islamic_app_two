@@ -70,10 +70,8 @@ class _ProfileBody extends StatelessWidget {
           appBar: AppBar(
             centerTitle: true,
             title:  Text("Profile",
-            style:AppColors().customTextStyle12(
-            color: AppColors.black,
-          ).copyWith(
-            fontSize: getFont(26)
+            style:AppColors().customTextStyleBold16().copyWith(
+            fontSize: getFont(16),
           )
             ),
             ),

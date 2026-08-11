@@ -32,7 +32,9 @@ class MakkahScreen extends StatelessWidget {
        }
        ),
     CategoryItem(
-      title: 'Hajj Area', 
+      title: 'Hajj Area',
+      
+      
       imagePath:AllImages.hajjArea,
       onTap: (){
          Navigator.push(
@@ -120,10 +122,9 @@ class MakkahScreen extends StatelessWidget {
         ),
         title: Text(
           'Makkah',
-           style:AppColors().customTextStyle18(
-                 ).copyWith(
-                  fontSize: getFont(26)
-                 )
+           style:AppColors().customTextStyleBold16().copyWith(
+            fontSize: getFont(16),
+          )
         ),
         centerTitle: true,
       ),

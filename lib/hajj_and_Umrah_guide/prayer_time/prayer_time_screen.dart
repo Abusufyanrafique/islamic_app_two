@@ -329,72 +329,82 @@ class _PrayerTimeScreen1State extends State<PrayerTimeScreen1> {
 
   // ── Build ──────────────────────────────────────────────────────────────────
 
-  @override
+@override
   Widget build(BuildContext context) {
     SizeConfig().init(context);
     return Scaffold(
       backgroundColor: AppColors.white,
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: Padding(
           padding: EdgeInsets.symmetric(horizontal: getWidth(20)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: getHeight(10)),
               _buildTopBar(context),
-              SizedBox(height: getHeight(20)),
-              _buildLocationWeatherRow(),
-              SizedBox(height: getHeight(8)),
-              Text(
-                DateFormat('MMMM d, yyyy').format(selectedDate),
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.black87,
-                ),
-              ),
-              SizedBox(height: getHeight(20)),
-              _buildDateSelector(),
-              SizedBox(height: getHeight(20)),
               if (!_locationLoaded)
-                 Center(
-                  child: SpinKitFadingCircle(
-                  color: AppColors.labbaik,
-                  // size: 50.0,
-                   ),
-                  )
-              else ...[
-                _buildCurrentPrayerCard(),
-                SizedBox(height: getHeight(20)),
-                ...prayers.asMap().entries.map(
-                  (e) => _buildPrayerTile(e.value, e.key),
-                ),
-              ],
-              if (_azanPlaying)
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                    vertical: getHeight(16),
+                Expanded(
+                  child: Center(
+                    child: SpinKitFadingCircle(
+                      color: AppColors.labbaik,
+                      size: 50.0,
                     ),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _stopAzan,
-                      icon: const Icon(
-                        Icons.stop_circle_outlined,
+                  ),
+                )
+              else
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: getHeight(20)),
+                        _buildLocationWeatherRow(),
+                        SizedBox(height: getHeight(8)),
+                        Text(
+                          DateFormat('MMMM d, yyyy').format(selectedDate),
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.black87,
+                          ),
                         ),
-                      label: const Text('Stop Azan'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red.shade400,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: getHeight(14)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                        SizedBox(height: getHeight(20)),
+                        _buildDateSelector(),
+                        SizedBox(height: getHeight(20)),
+                        _buildCurrentPrayerCard(),
+                        SizedBox(height: getHeight(20)),
+                        ...prayers.asMap().entries.map(
+                          (e) => _buildPrayerTile(e.value, e.key),
                         ),
-                      ),
+                        if (_azanPlaying)
+                          Padding(
+                            padding: EdgeInsets.symmetric(
+                              vertical: getHeight(16),
+                            ),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: _stopAzan,
+                                icon: const Icon(
+                                  Icons.stop_circle_outlined,
+                                ),
+                                label: const Text('Stop Azan'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red.shade400,
+                                  foregroundColor: Colors.white,
+                                  padding: EdgeInsets.symmetric(vertical: getHeight(14)),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        SizedBox(height: getHeight(20)),
+                      ],
                     ),
                   ),
                 ),
-              SizedBox(height: getHeight(20)),
             ],
           ),
         ),
@@ -417,9 +427,9 @@ class _PrayerTimeScreen1State extends State<PrayerTimeScreen1> {
           child: Center(
             child: Text(
               AllText.prayerTime,
-              style: AppColors().customTextStyle18().copyWith(
-                    fontSize: getFont(26),
-                  ),
+              style: AppColors().customTextStyleBold16().copyWith(
+                fontSize: getFont(16),
+              ),
             ),
           ),
         ),

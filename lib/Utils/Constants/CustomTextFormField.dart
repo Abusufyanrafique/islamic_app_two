@@ -45,14 +45,14 @@ class CustomTextField extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             color: Colors.white, 
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.25), 
-                offset: Offset(0, 1), // x=0, y=1
-                blurRadius: 4, // blur
-                spreadRadius: 0, // spread
-              ),
-            ],
+           boxShadow: [
+  BoxShadow(
+    color: Colors.black.withOpacity(0.25), // #000000 25%
+    offset: const Offset(0, 1),            // X: 0, Y: 1
+    blurRadius: 4,                          // Blur: 4
+    spreadRadius: 0,                        // Spread: 0
+  ),
+],
             borderRadius: BorderRadius.circular(8), 
           ),
           child: TextFormField(
@@ -61,6 +61,10 @@ class CustomTextField extends StatelessWidget {
             controller: titleController,
             keyboardType: keyboardType,
             decoration:  InputDecoration(
+              contentPadding: const EdgeInsets.symmetric(
+               horizontal: 12,
+               vertical: 8,
+),
               hintText: hinttext,
               hintStyle: AppColors().
               customTextStyleBold16(
@@ -78,7 +82,7 @@ class CustomTextField extends StatelessWidget {
     // ),
 
     enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(6),
       borderSide: BorderSide(
         color: AppColors.screenbackgroundColor,
         width: 1,

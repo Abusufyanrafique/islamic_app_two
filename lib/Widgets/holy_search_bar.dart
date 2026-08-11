@@ -25,23 +25,25 @@ class HolySearchBar extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            icon: Icon(Icons.menu, color: AppColors.hinttext),
+            icon: Icon(Icons.menu, color: AppColors.white),
             onPressed: onMenuTap,
           ),
           Expanded(
             child: TextField(
               onChanged: onChanged,
-              style: const TextStyle(color: AppColors.hinttext),
+              style: const TextStyle(color: AppColors.white),
               decoration: InputDecoration(
                 hintText: hintText,
-                hintStyle: const TextStyle(color: AppColors.hinttext),
+                hintStyle: AppColors().customTextStyle14(
+                  color: AppColors.white
+                ),
                 border: InputBorder.none,
               ),
             ),
           ),
           Padding(
             padding: EdgeInsets.only(right: getWidth(16)),
-            child: Icon(Icons.search, color: AppColors.hinttext),
+            child: Icon(Icons.search, color: AppColors.white),
           ),
         ],
       ),

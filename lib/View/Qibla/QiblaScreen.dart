@@ -55,13 +55,9 @@ class QiblaCubit extends Cubit<QiblaState> {
   StreamSubscription? _compassSubscription;
   final AudioPlayer _audioPlayer = AudioPlayer();
 
-  // ✅ FINAL FIX: Sirf timestamp track karo
-  // Jab bhi sound baje → time save karo
-  // Agli sound tab baje jab 2 second guzar jaayein (user actually door gaya hoga)
   DateTime _lastAlignedTime = DateTime(2000);
   bool _currentlyAligned = false;
 
-  // 10 degree = aligned zone
   static const double _alignDeg = 10.0;
 
   QiblaCubit() : super(QiblaState()) {
@@ -148,25 +144,14 @@ class QiblaCubit extends Cubit<QiblaState> {
       final heading = event.heading!;
       final qibla = state.qiblaDirection;
 
-      // Angle between device and Qibla (0 = perfect, 180 = opposite)
       final angle = (qibla - heading + 360) % 360;
-
-      // 10 degree ke andar = aligned
-      final bool isAligned =
-          angle < _alignDeg || angle > (360 - _alignDeg);
+      final bool isAligned = angle < _alignDeg || angle > (360 - _alignDeg);
 
       emit(state.copyWith(compassHeading: heading, isAligned: isAligned));
 
-      // ✅ SIMPLE LOGIC:
-      // Aligned zona mein enter kiya → sound bajao
-      // Condition: pehle aligned nahi tha (entering the zone)
-      // YA 2 second pehle sound baj chuki thi (user wapas aaya)
       if (isAligned && !_currentlyAligned) {
-        // User ne qibla zone enter kiya
         final now = DateTime.now();
         final timeSinceLast = now.difference(_lastAlignedTime).inMilliseconds;
-
-        // Pehli baar ya 2 second baad wapas aaya → sound bajao
         if (timeSinceLast > 2000) {
           _lastAlignedTime = now;
           HapticFeedback.mediumImpact();
@@ -286,16 +271,17 @@ class _QiblaScreenState extends State<QiblaScreen> with RouteAware {
         (state.qiblaDirection - state.compassHeading + 360) % 360;
 
     return SingleChildScrollView(
+
       child: Column(
         children: [
-          SizedBox(height: getHeight(35)),
+          SizedBox(height: getHeight(30)),
           _buildCompass(
               state.compassHeading, state.qiblaDirection, state.isAligned),
-          SizedBox(height: getHeight(24)),
+          SizedBox(height: getHeight(15)),
           _buildDegreeDisplay(qiblaAngle),
           SizedBox(height: getHeight(10)),
           _buildInstruction(qiblaAngle),
-          SizedBox(height: getHeight(24)),
+          // SizedBox(height: getHeight(24)),
         ],
       ),
     );
@@ -305,19 +291,36 @@ class _QiblaScreenState extends State<QiblaScreen> with RouteAware {
     final double ringAngle = -heading * math.pi / 180;
     final double qiblaScreenAngle = (qiblaDir - heading) * math.pi / 180;
 
+    // ✅ Compass radius + Kaaba icon ko bahar rakhne ke liye
+    // Ring outer radius = 140, icon size = 44
+    // Icon center = 140 + 22 = 162 pixels from center
+    const double compassRadius = 120.0;
+    const double iconSize = 44.0;
+    const double iconOffset = compassRadius + iconSize / 2 + 12;
+
+    // Icon ki position calculate karo (top = center - iconOffset)
+    final double iconX = iconOffset * math.sin(qiblaScreenAngle);
+    final double iconY = -iconOffset * math.cos(qiblaScreenAngle);
+
+    // Total widget size: compass diameter + icon on both sides
+    const double totalSize = (compassRadius + iconSize + 8) * 2;
+
     return SizedBox(
-      width: getWidth(280),
-      height: getHeight(300),
+      width: getWidth(totalSize),
+      height: getHeight(totalSize),
       child: Stack(
         alignment: Alignment.center,
         children: [
+          // ── Compass Ring ──
           Transform.rotate(
             angle: ringAngle,
             child: CustomPaint(
-              size: const Size(280, 280),
+              size: const Size(270, 270),
               painter: _RingPainter(heading: heading),
             ),
           ),
+
+          // ── White inner circle ──
           Container(
             width: getWidth(212),
             height: getHeight(212),
@@ -333,13 +336,17 @@ class _QiblaScreenState extends State<QiblaScreen> with RouteAware {
               ],
             ),
           ),
+
+          // ── Needle (Qibla direction) ──
           Transform.rotate(
-            angle: ringAngle,
+            angle: qiblaScreenAngle,
             child: CustomPaint(
               size: const Size(212, 212),
-              painter: _NeedlePainter(heading: heading),
+              painter: _NeedlePainter(isAligned: isAligned),
             ),
           ),
+
+          // ── Center dot ──
           Container(
             width: getWidth(14),
             height: getHeight(14),
@@ -348,78 +355,99 @@ class _QiblaScreenState extends State<QiblaScreen> with RouteAware {
               shape: BoxShape.circle,
             ),
           ),
-          Transform.rotate(
-            angle: qiblaScreenAngle,
-            child: SizedBox(
-              width: getWidth(212),
-              height: getHeight(212),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Positioned(
-                    top: 6,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: CustomPaint(
-                        size: const Size(16, 14),
-                        painter: _ArrowTipPainter(isAligned: isAligned),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 18,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: TweenAnimationBuilder<Color?>(
-                        key: ValueKey(isAligned),
-                        tween: ColorTween(
-                          begin: isAligned
-                              ? const Color(0xFFD4A017)
-                              : const Color(0xFF2ECC71),
-                          end: isAligned
-                              ? const Color(0xFF2ECC71)
-                              : const Color(0xFFD4A017),
-                        ),
-                        duration: const Duration(milliseconds: 400),
-                        builder: (context, color, _) {
-                          final activeColor = color ?? const Color(0xFFD4A017);
-                          return Container(
-                            width: getWidth(42),
-                            height: getHeight(42),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: activeColor,
-                                width: 2.5,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: activeColor.withOpacity(0.45),
-                                  blurRadius: isAligned ? 16 : 8,
-                                  spreadRadius: isAligned ? 2 : 0,
-                                ),
-                              ],
-                            ),
-                            child: Center(
-                              child: Text(
-                                '🕋',
-                                style: TextStyle(fontSize: getFont(20)),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
+
+          // ✅ MAIN FIX: Kaaba icon compass ke BAHAR — rim par
+          // Transform se position calculate ho rahi hai
+          Transform.translate(
+            offset: Offset(iconX, iconY),
+            child: _buildKaabaIconOutside(isAligned),
+          ),
+        ],
+      ),
+    );
+  }
+
+  //  Kaaba icon — compass rim ke bahar, 3 layer ring ke saath
+  Widget _buildKaabaIconOutside(bool isAligned) {
+    return TweenAnimationBuilder<Color?>(
+      key: ValueKey(isAligned),
+      tween: ColorTween(
+        begin: isAligned
+            ? const Color(0xFFD4A017)
+            : const Color(0xFF2ECC71),
+        end: isAligned
+            ? const Color(0xFF2ECC71)
+            : const Color(0xFFD4A017),
+      ),
+      duration: const Duration(milliseconds: 400),
+      builder: (context, color, _) {
+        final activeColor = color ?? const Color(0xFFD4A017);
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            // Layer 1: Outer glow ring
+            Container(
+              width: getWidth(58),
+              height: getHeight(58),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: activeColor.withOpacity(0.30),
+                  width: 5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: activeColor
+                        .withOpacity(isAligned ? 0.55 : 0.30),
+                    blurRadius: isAligned ? 24 : 10,
+                    spreadRadius: isAligned ? 5 : 1,
                   ),
                 ],
               ),
             ),
-          ),
-        ],
-      ),
+
+            // Layer 2: Inner border ring
+            Container(
+              width: getWidth(50),
+              height: getHeight(50),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: activeColor.withOpacity(0.70),
+                  width: 2,
+                ),
+              ),
+            ),
+
+            // Layer 3: White circle with Kaaba emoji
+            Container(
+              width: getWidth(42),
+              height: getHeight(42),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: activeColor,
+                  width: 2.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: activeColor.withOpacity(0.45),
+                    blurRadius: isAligned ? 16 : 8,
+                    spreadRadius: isAligned ? 2 : 0,
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Text(
+                  '🕋',
+                  style: TextStyle(fontSize: getFont(20)),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -623,13 +651,15 @@ class _RingPainter extends CustomPainter {
 
 // ── Needle Painter ──────────────────────────────────────────
 class _NeedlePainter extends CustomPainter {
-  final double heading;
-  const _NeedlePainter({required this.heading});
+  final bool isAligned;
+  const _NeedlePainter({required this.isAligned});
 
   @override
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
     final cy = size.height / 2;
+
+    // Upar = Qibla direction
     canvas.drawPath(
       Path()
         ..moveTo(cx, cy - 72)
@@ -637,8 +667,12 @@ class _NeedlePainter extends CustomPainter {
         ..lineTo(cx, cy + 18)
         ..lineTo(cx + 9, cy)
         ..close(),
-      Paint()..color = const Color(0xFF1A4A4A),
+      Paint()
+        ..color =
+            isAligned ? const Color(0xFF2ECC71) : const Color(0xFFD4A017),
     );
+
+    // Neeche = opposite
     canvas.drawPath(
       Path()
         ..moveTo(cx, cy + 72)
@@ -651,31 +685,10 @@ class _NeedlePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_NeedlePainter old) => old.heading != heading;
+  bool shouldRepaint(_NeedlePainter old) => old.isAligned != isAligned;
 }
 
-// ── Arrow Tip Painter ───────────────────────────────────────
-class _ArrowTipPainter extends CustomPainter {
-  final bool isAligned;
-  const _ArrowTipPainter({required this.isAligned});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.drawPath(
-      Path()
-        ..moveTo(size.width / 2, 0)
-        ..lineTo(0, size.height)
-        ..lineTo(size.width, size.height)
-        ..close(),
-      Paint()
-        ..color =
-            isAligned ? const Color(0xFF2ECC71) : const Color(0xFFD4A017),
-    );
-  }
-
-  @override
-  bool shouldRepaint(_ArrowTipPainter old) => old.isAligned != isAligned;
-}
+// ── Arrow Tip Painter — HATAYA (bahar icon ki wajah se zaroorat nahi) ──
 
 // ── Background Islamic Pattern ──────────────────────────────
 class _BgPatternPainter extends CustomPainter {

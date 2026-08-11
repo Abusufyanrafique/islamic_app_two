@@ -13,9 +13,9 @@ class OnBoardingState {
   final bool isLastPage;
 
   OnBoardingState({
-    this.currentIndex = 0, 
-    this.isLastPage = false
-    });
+    this.currentIndex = 0,
+    this.isLastPage = false,
+  });
 }
 
 class OnBoardingCubit extends Cubit<OnBoardingState> {
@@ -24,17 +24,27 @@ class OnBoardingCubit extends Cubit<OnBoardingState> {
   void updatePageIndex(int index) {
     emit(OnBoardingState(
       currentIndex: index,
-      isLastPage: index == 2, 
+      isLastPage: index == 2,
     ));
   }
 }
 
+class OnBoardingScreen extends StatefulWidget {
+  const OnBoardingScreen({super.key});
 
-class OnBoardingScreen extends StatelessWidget {
-  OnBoardingScreen({super.key});
+  @override
+  State<OnBoardingScreen> createState() => _OnBoardingScreenState();
+}
 
-  
+class _OnBoardingScreenState extends State<OnBoardingScreen> {
   final PageController controller = PageController();
+  bool _isAnimating = false; // ✅ double-tap guard
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,20 +69,19 @@ class OnBoardingScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Padding(
-                      padding:  EdgeInsets.symmetric(
+                      padding: EdgeInsets.symmetric(
                         horizontal: getWidth(10),
-                        ),
+                      ),
                       child: Image.asset(
                         AllImages.upperimage,
-                         fit: BoxFit.cover,
-                         ),
+                        fit: BoxFit.cover,
+                      ),
                     ),
                     SizedBox(
                       height: getHeight(398),
                       child: PageView(
                         controller: controller,
                         onPageChanged: (index) {
-
                           context.read<OnBoardingCubit>().updatePageIndex(index);
                         },
                         children: [
@@ -81,7 +90,7 @@ class OnBoardingScreen extends StatelessWidget {
                             heading: AllText.onboarding_Heading1,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             subHeading: AllText.onboarding_subHeading1,
-                            padding:  EdgeInsets.only(right: 30),
+                            padding: EdgeInsets.only(right: 30),
                             borderRadius: const BorderRadius.only(
                               bottomRight: Radius.circular(100),
                               topRight: Radius.circular(100),
@@ -92,7 +101,7 @@ class OnBoardingScreen extends StatelessWidget {
                             heading: AllText.onboarding_Heading2,
                             subHeading: AllText.onboarding_subHeading2,
                             borderRadius: BorderRadius.circular(80),
-                            padding:  EdgeInsets.symmetric(horizontal: getWidth(30)),
+                            padding: EdgeInsets.symmetric(horizontal: getWidth(30)),
                           ),
                           buildPage(
                             image: AllImages.quran,
@@ -108,12 +117,11 @@ class OnBoardingScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    // SizedBox(height: getHeight(20)),
                     Center(
                       child: SmoothPageIndicator(
                         effect: WormEffect(
                           spacing: 15,
-                          dotWidth: 6, 
+                          dotWidth: 6,
                           dotHeight: 6,
                           dotColor: Colors.cyan.shade100,
                           activeDotColor: AppColors.primaryColor,
@@ -122,7 +130,7 @@ class OnBoardingScreen extends StatelessWidget {
                           controller.animateToPage(
                             index,
                             duration: const Duration(milliseconds: 300),
-                            curve: Curves.bounceInOut,
+                            curve: Curves.easeInOut,
                           );
                         },
                         controller: controller,
@@ -132,10 +140,14 @@ class OnBoardingScreen extends StatelessWidget {
                     SizedBox(height: getHeight(10)),
                     button(
                       state.isLastPage ? "Get Started" : "Next",
-                          () async {
+                      () async {
+                        if (_isAnimating) return; // double-tap se rok do
+                        _isAnimating = true;
+
                         if (state.isLastPage) {
                           final prefs = await SharedPreferences.getInstance();
                           await prefs.setBool("isFirstTime", false);
+                          if (!mounted) return;
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
@@ -143,14 +155,15 @@ class OnBoardingScreen extends StatelessWidget {
                             ),
                           );
                         } else {
-                          controller.nextPage(
+                          await controller.nextPage(
                             duration: const Duration(milliseconds: 300),
-                            curve: Curves.bounceIn,
+                            curve: Curves.easeInOut,
                           );
                         }
+
+                        _isAnimating = false;
                       },
                     ),
-                    
                   ],
                 );
               },
@@ -158,13 +171,13 @@ class OnBoardingScreen extends StatelessWidget {
           ],
         ),
         bottomNavigationBar: Padding(
-          padding:  EdgeInsets.symmetric(
-            horizontal: getWidth(10)
-            ),
+          padding: EdgeInsets.symmetric(
+            horizontal: getWidth(10),
+          ),
           child: Image.asset(
-            AllImages.bottomimage, 
+            AllImages.bottomimage,
             fit: BoxFit.cover,
-            ),
+          ),
         ),
       ),
     );
@@ -198,31 +211,30 @@ class OnBoardingScreen extends StatelessWidget {
         SizedBox(height: getHeight(20)),
         Center(
           child: Padding(
-            padding:  EdgeInsets.only(
-              left: 20.0,
-              right: 20,
-              ),
+            padding: EdgeInsets.only(
+              left: getWidth(20),
+              right: getWidth(20),
+            ),
             child: Text(
               heading,
               textAlign: TextAlign.center,
-              style:  AppColors().customTextStyle20().copyWith(
-                fontSize: getFont(24)
-              )
+              style: AppColors().customTextStyle20().copyWith(
+                fontSize: getFont(24),
+              ),
             ),
           ),
         ),
         SizedBox(height: getHeight(10)),
         Center(
           child: Padding(
-            padding:  EdgeInsets.only(
+            padding: EdgeInsets.only(
               left: getWidth(40),
               right: getWidth(40),
-              
-              ),
+            ),
             child: Text(
               subHeading,
               textAlign: TextAlign.center,
-              style: AppColors().customTextStyle14()
+              style: AppColors().customTextStyle14(),
             ),
           ),
         ),
@@ -233,8 +245,7 @@ class OnBoardingScreen extends StatelessWidget {
   // Same button widget with exact same styles
   Widget button(String title, VoidCallback ontap) {
     return Padding(
-      padding:  EdgeInsets.symmetric(
-        horizontal: getWidth(12)),
+      padding: EdgeInsets.symmetric(horizontal: getWidth(12)),
       child: SizedBox(
         width: double.infinity,
         height: getHeight(53),
@@ -250,8 +261,8 @@ class OnBoardingScreen extends StatelessWidget {
               child: Text(
                 title,
                 style: AppColors().customTextStyleBold16(
-                  color: AppColors.white
-                )
+                  color: AppColors.white,
+                ),
               ),
             ),
           ),
@@ -260,5 +271,3 @@ class OnBoardingScreen extends StatelessWidget {
     );
   }
 }
-
-

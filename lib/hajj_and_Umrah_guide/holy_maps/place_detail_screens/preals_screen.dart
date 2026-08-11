@@ -169,7 +169,23 @@ class _HeaderSection extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  // _BackButton(onTap: () => Navigator.maybePop(context)),
+                  
+                  InkWell(
+                    onTap: () => Navigator.maybePop(context),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.9),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.arrow_back,
+                        size: getFont(26),
+                        color: AppColors.black,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -201,8 +217,6 @@ class _HeaderSection extends StatelessWidget {
     );
   }
 }
-
-
 class SevenMosquesScreen extends StatelessWidget {
   const SevenMosquesScreen({super.key});
 

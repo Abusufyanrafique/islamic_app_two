@@ -60,7 +60,7 @@ class AllahNamesScreen extends StatelessWidget {
     return BlocProvider(
       create: (context) => AllahNamesBloc()..add(FetchAllahNames()),
       child: Scaffold(
-        backgroundColor: const Color(0xffF5F5F5),
+        // backgroundColor: const Color(0xffF5F5F5),
         appBar: AppBar(
           // iconTheme: const IconThemeData(color: Colors.white),
         bottom: PreferredSize(

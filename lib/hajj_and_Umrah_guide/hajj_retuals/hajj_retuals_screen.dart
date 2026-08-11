@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:local_notification/Utils/Constants/AllColors.dart';
 import 'package:local_notification/Utils/Constants/AllImages.dart';
 import 'package:local_notification/Utils/Constants/AllText.dart';
@@ -221,7 +222,6 @@ class _SectionTitle extends StatelessWidget {
 class _RitualCard extends StatelessWidget {
   final RitualItem item;
   const _RitualCard({required this.item});
-
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -232,49 +232,60 @@ class _RitualCard extends StatelessWidget {
         onTap: item.onTap,
         child: Container(
           height: getHeight(92),
-          padding:  EdgeInsets.all(10),
           decoration: BoxDecoration(
+            color: AppColors.white,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: AppColors.resultcontainerboder.withOpacity(0.34)
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF000000).withOpacity(0.25),
+                offset: const Offset(0, 1),
+                blurRadius: 4,
+                spreadRadius: 0,
               ),
-          
+            ],
           ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              
               ClipRRect(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(8),
+                  bottomLeft: Radius.circular(8),
+                  topRight: Radius.circular(8),
+                  bottomRight: Radius.circular(8),
+                ),
                 child: Image.asset(
                   item.imagePath,
-                  height: getHeight(60),
-                  width: getWidth(60),
+                  width: getWidth(90),
                   fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) => Container(
-                  height: getHeight(60),
-                  width: getWidth(60),
+                    width: getWidth(90),
                     color: AppColors.darkBackgroundColor,
-                    // child: const Icon(
-                    //   Icons.image, 
-                    //   color: AppColors.eye,
-                    //   ),
                   ),
                 ),
               ),
-               SizedBox(width: getWidth(14)),
+              SizedBox(width: getWidth(14)),
               Expanded(
-                child: Text(
-                  item.title,
-                  style: AppColors().customTextStyleBold800(
-                    color: AppColors.labbaik,
-                  ).copyWith(
-                    fontSize: getFont(18)
-                  )
+                child: Center(
+                  child: Text(
+                    item.title,
+                    style: AppColors().customTextStyleBold800(
+                      color: AppColors.labbaik,
+                    ).copyWith(
+                      fontSize: getFont(18)
+                    )
+                  ),
                 ),
               ),
-             Image(
-              image: AssetImage(
-              AllImages.arrow
-             ))
+              Padding(
+                padding: EdgeInsets.only(right: getWidth(20)),
+                child:  SvgPicture.asset(
+            'assets/icons/arrowforward.svg',
+            width: getWidth(20),
+            height: getHeight(20),
+),
+              ),
             ],
           ),
         ),

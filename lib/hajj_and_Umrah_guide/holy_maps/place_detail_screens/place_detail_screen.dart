@@ -33,8 +33,8 @@ class PlaceDetailScreen extends StatelessWidget {
         ),
         title: Text(
           title,
-          style: AppColors().customTextStyle18().copyWith(
-            fontSize: getFont(20),
+          style: AppColors().customTextStyle15().copyWith(
+            fontSize: getFont(16),
             fontWeight: FontWeight.bold,
           ),
         ),

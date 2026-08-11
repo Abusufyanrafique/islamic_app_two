@@ -37,6 +37,7 @@ class SalatTimeResult {
   final String locationName;
   final bool isFromGPS;
   final String? errorMessage;
+
   SalatTimeResult({
     required this.salatTime,
     required this.locationName,
@@ -106,7 +107,8 @@ class SalatTimeService {
         '${AllApiLink.prayerTime}/$date'
             '?latitude=$latitude&longitude=$longitude&method=$method',
       );
-      final response = await http.get(uri).timeout(const Duration(seconds: 10));
+      final response =
+          await http.get(uri).timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         return SalatTime.fromJson(json.decode(response.body));
       }
@@ -240,7 +242,7 @@ class PrayerTimeState {
 class PrayerTimeCubit extends Cubit<PrayerTimeState> {
   final SalatTimeService _service = SalatTimeService();
   final HiveService _hive = HiveService();
-  final PrayerAzanService _azanService = PrayerAzanService(); // ← added
+  final PrayerAzanService _azanService = PrayerAzanService();
 
   PrayerTimeCubit() : super(PrayerTimeState());
 
@@ -308,26 +310,61 @@ class PrayerTimeCubit extends Cubit<PrayerTimeState> {
         cachedTimings: {},
         cachedDisplay: {},
       ));
+
+      await _rescheduleActiveAzans();
     } else if (!silent) {
-      emit(state.copyWith(isLoading: false, errorMessage: result.errorMessage));
+      emit(state.copyWith(
+          isLoading: false, errorMessage: result.errorMessage));
+    }
+  }
+
+  Future<void> _rescheduleActiveAzans() async {
+    for (final name in ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha']) {
+      if (state.switchStates[name] == true) {
+        final rawTime = _getRawTimeForName(name);
+        if (rawTime.isNotEmpty && rawTime != '--:--') {
+          await _azanService.scheduleAzan(
+            prayerName: name,
+            rawTime: rawTime,
+          );
+        }
+      }
+    }
+  }
+
+  String _getRawTimeForName(String name) {
+    final t = state.salatTime?.data?.timings;
+    switch (name) {
+      case 'Fajr':
+        return t?.fajr?.split(' ').first ?? '';
+      case 'Dhuhr':
+        return t?.dhuhr?.split(' ').first ?? '';
+      case 'Asr':
+        return t?.asr?.split(' ').first ?? '';
+      case 'Maghrib':
+        return t?.maghrib?.split(' ').first ?? '';
+      case 'Isha':
+        return t?.isha?.split(' ').first ?? '';
+      default:
+        return '';
     }
   }
 
   // ── Switch toggle — azan schedule ya cancel ───────────────────
-  Future<void> onSwitchChanged(String name, bool value, String rawTime) async {
+  Future<void> onSwitchChanged(
+      String name, bool value, String rawTime) async {
     final newStates = Map<String, bool>.from(state.switchStates);
     newStates[name] = value;
     emit(state.copyWith(switchStates: newStates));
     await _hive.saveSwitchState(name, value);
 
     if (value) {
-      // Switch ON — azan schedule karo
+      // await _azanService.testAzan(name);  
       await _azanService.scheduleAzan(
         prayerName: name,
         rawTime: rawTime,
       );
     } else {
-      // Switch OFF — azan cancel karo
       await _azanService.cancelAzan(name);
     }
   }
@@ -385,8 +422,9 @@ class PrayerTimeScreen extends StatelessWidget {
             Builder(builder: (context) {
               return IconButton(
                 icon: const Icon(Icons.refresh),
-                onPressed: () =>
-                    context.read<PrayerTimeCubit>().fetchAndSave(silent: true),
+                onPressed: () => context
+                    .read<PrayerTimeCubit>()
+                    .fetchAndSave(silent: true),
               );
             }),
           ],
@@ -422,8 +460,8 @@ class PrayerTimeScreen extends StatelessWidget {
                           state.errorMessage!.isNotEmpty)
                         _errorWidget(state.errorMessage!),
                       SizedBox(height: getHeight(12)),
-                      _headerCard(
-                          state, hijriWeekday, hijriDate, gregorianReadable),
+                      _headerCard(state, hijriWeekday, hijriDate,
+                          gregorianReadable),
                       SizedBox(height: getHeight(12)),
                       ...['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha']
                           .map((name) {
@@ -503,20 +541,21 @@ class PrayerTimeScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.location_off, color: Colors.orange.shade700, size: 18),
+          Icon(Icons.location_off,
+              color: Colors.orange.shade700, size: 18),
           SizedBox(width: getWidth(8)),
           Expanded(
             child: Text(message,
-                style:
-                    TextStyle(color: Colors.orange.shade800, fontSize: 12)),
+                style: TextStyle(
+                    color: Colors.orange.shade800, fontSize: 12)),
           ),
         ],
       ),
     );
   }
 
-  Widget _headerCard(
-      PrayerTimeState state, String weekday, String date, String greg) {
+  Widget _headerCard(PrayerTimeState state, String weekday, String date,
+      String greg) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(vertical: getHeight(20)),
@@ -527,7 +566,9 @@ class PrayerTimeScreen extends StatelessWidget {
       child: Column(children: [
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           Icon(
-              state.isFromGPS ? Icons.location_on : Icons.location_city,
+              state.isFromGPS
+                  ? Icons.location_on
+                  : Icons.location_city,
               color: Colors.white70,
               size: 14),
           SizedBox(width: getWidth(4)),
@@ -551,11 +592,16 @@ class PrayerTimeScreen extends StatelessWidget {
     if (state.isFresh && state.salatTime != null) {
       final t = state.salatTime!.data?.timings;
       switch (name) {
-        case 'Fajr': return t?.fajr?.split(' ').first ?? '';
-        case 'Dhuhr': return t?.dhuhr?.split(' ').first ?? '';
-        case 'Asr': return t?.asr?.split(' ').first ?? '';
-        case 'Maghrib': return t?.maghrib?.split(' ').first ?? '';
-        case 'Isha': return t?.isha?.split(' ').first ?? '';
+        case 'Fajr':
+          return t?.fajr?.split(' ').first ?? '';
+        case 'Dhuhr':
+          return t?.dhuhr?.split(' ').first ?? '';
+        case 'Asr':
+          return t?.asr?.split(' ').first ?? '';
+        case 'Maghrib':
+          return t?.maghrib?.split(' ').first ?? '';
+        case 'Isha':
+          return t?.isha?.split(' ').first ?? '';
       }
     }
     return state.cachedTimings[name] ?? '--:--';
@@ -577,12 +623,18 @@ class PrayerTimeScreen extends StatelessWidget {
 
   String _getImage(String name) {
     switch (name) {
-      case 'Fajr': return AllImages.fajrIcon;
-      case 'Dhuhr': return AllImages.zohrIcon;
-      case 'Asr': return AllImages.asrIcon;
-      case 'Maghrib': return AllImages.magribIcon;
-      case 'Isha': return AllImages.ishaIcon;
-      default: return AllImages.fajrIcon;
+      case 'Fajr':
+        return AllImages.fajrIcon;
+      case 'Dhuhr':
+        return AllImages.zohrIcon;
+      case 'Asr':
+        return AllImages.asrIcon;
+      case 'Maghrib':
+        return AllImages.magribIcon;
+      case 'Isha':
+        return AllImages.ishaIcon;
+      default:
+        return AllImages.fajrIcon;
     }
   }
 }

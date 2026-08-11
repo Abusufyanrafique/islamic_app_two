@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:local_notification/Utils/Constants/AllColors.dart';
 import 'package:local_notification/Utils/Constants/SizeConfig.dart';
 
 import 'AllDuaScreen.dart';
@@ -463,7 +464,7 @@ class SubjectsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      // backgroundColor: const Color(0xFFF5F5F5),
       body: SafeArea(
         child: Padding(
           padding:  EdgeInsets.all(16),
@@ -521,16 +522,18 @@ class SubjectCard extends StatelessWidget {
              SizedBox(height: getHeight(8)),
             Text(
               subject.name,
-              style:  TextStyle(
-                fontSize: getFont(15),
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1A1A1A),
-              ),
+              style: AppColors().customTextStyleBold16().copyWith(
+                fontSize: getFont(18)
+              )
             ),
              SizedBox(height: getHeight(4)),
             Text(
               '${subject.duas.length} duaein',
-              style:  TextStyle(fontSize: getFont(12), color: Color(0xFF888888)),
+              style:  AppColors().customTextStyle14(
+                color: Color(0xFF888888),
+              ).copyWith(
+                fontSize: getFont(12)
+              ),
             ),
           ],
         ),

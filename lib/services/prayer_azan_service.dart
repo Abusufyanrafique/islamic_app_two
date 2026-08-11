@@ -6,7 +6,9 @@ class PrayerAzanService {
   static final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
-  // ── Har prayer ka fixed notification ID ───────────────────────
+  static const String _channelId = 'prayer_azan_channel';
+  static const String _channelName = 'Prayer Azan';
+
   static const Map<String, int> prayerNotificationIds = {
     'Fajr': 20,
     'Dhuhr': 21,
@@ -14,6 +16,22 @@ class PrayerAzanService {
     'Maghrib': 23,
     'Isha': 24,
   };
+
+  static const NotificationDetails _notificationDetails = NotificationDetails(
+    android: AndroidNotificationDetails(
+      _channelId,
+      _channelName,
+      importance: Importance.max,
+      priority: Priority.high,
+      icon: 'mosque_icon',
+      largeIcon: DrawableResourceAndroidBitmap('mosque_icon'),
+      sound: RawResourceAndroidNotificationSound('adhan'),
+      playSound: true,
+      enableVibration: false,
+      visibility: NotificationVisibility.public,
+      fullScreenIntent: true,
+    ),
+  );
 
   // ── Plugin initialize — app start pe ek baar call karo ────────
   static Future<void> init() async {
@@ -26,8 +44,36 @@ class PrayerAzanService {
       ),
       onDidReceiveNotificationResponse: (details) {},
     );
+
+    // ✅ Purana channel delete karo, naya sound ke sath banao
+    await _recreateChannel();
     await _requestPermissions();
     debugPrint("✅ PrayerAzanService initialized");
+  }
+
+  // ✅ Channel delete + recreate — har app start pe fresh channel
+  static Future<void> _recreateChannel() async {
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+
+    if (android == null) return;
+
+    // Purana channel delete karo
+    await android.deleteNotificationChannel(channelId: _channelId);
+    debugPrint('🗑️ Old channel deleted');
+
+    // Naya channel banao sound ke sath
+    const channel = AndroidNotificationChannel(
+      _channelId,
+      _channelName,
+      importance: Importance.max,
+      sound: RawResourceAndroidNotificationSound('adhan'),
+      playSound: true,
+      enableVibration: false,
+    );
+    await android.createNotificationChannel(channel);
+    debugPrint('✅ New channel created with adhan sound');
   }
 
   static Future<void> _requestPermissions() async {
@@ -36,10 +82,14 @@ class PrayerAzanService {
             AndroidFlutterLocalNotificationsPlugin>();
     await android?.requestNotificationsPermission();
     await android?.requestExactAlarmsPermission();
+
+    final exactAlarm = await android?.canScheduleExactNotifications();
+    final notifPerm = await android?.areNotificationsEnabled();
+    debugPrint('🔔 Exact alarm allowed: $exactAlarm');
+    debugPrint('🔔 Notifications enabled: $notifPerm');
   }
 
-  // ── Switch ON — azan schedule karo ───────────────────────────
-  // rawTime format: "04:32" (24hr)
+  // ── Switch ON — azan schedule karo (daily repeat) ─────────────
   Future<void> scheduleAzan({
     required String prayerName,
     required String rawTime,
@@ -61,8 +111,7 @@ class PrayerAzanService {
 
     final now = DateTime.now();
     var prayerTime = DateTime(now.year, now.month, now.day, hour, minute);
-    // var prayerTime = now.add(const Duration(minutes: 1));
-    // Agar time guzar gaya ho to kal ke liye schedule karo
+
     if (prayerTime.isBefore(now)) {
       prayerTime = prayerTime.add(const Duration(days: 1));
     }
@@ -72,26 +121,36 @@ class PrayerAzanService {
       title: "$prayerName Prayer Time 🕌",
       body: "It's time for $prayerName",
       scheduledDate: tz.TZDateTime.from(prayerTime, tz.local),
-      notificationDetails: const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'prayer_azan_channel_v4', 
-          'Prayer Azan',
-          importance: Importance.max,
-          priority: Priority.high,
-          icon: 'mosque_icon',
-          largeIcon: DrawableResourceAndroidBitmap('mosque_icon'),
-          sound: RawResourceAndroidNotificationSound('adhan'),
-          playSound: true,
-          enableVibration: false,
-          visibility: NotificationVisibility.public,
-          fullScreenIntent: true,
-        ),
-      ),
+      notificationDetails: _notificationDetails,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      matchDateTimeComponents: DateTimeComponents.time, 
+      matchDateTimeComponents: DateTimeComponents.time,
     );
 
     debugPrint("✅ Azan scheduled: $prayerName at $prayerTime");
+  }
+
+  // ── TEST — 5 seconds mein fire karo (one-time) ────────────────
+  Future<void> testAzan(String prayerName) async {
+    final id = prayerNotificationIds[prayerName];
+    if (id == null) {
+      debugPrint("❌ Unknown prayer: $prayerName");
+      return;
+    }
+
+    final testTime =
+        tz.TZDateTime.now(tz.local).add(const Duration(seconds: 10));
+
+    await _plugin.zonedSchedule(
+      id: id,
+      title: "$prayerName Prayer Time 🕌 (Test)",
+      body: "Test: It's time for $prayerName",
+      scheduledDate: testTime,
+      notificationDetails: _notificationDetails,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      // matchDateTimeComponents nahi — one-time fire
+    );
+
+    debugPrint("✅ TEST azan scheduled: $prayerName at $testTime");
   }
 
   // ── Switch OFF — azan cancel karo ────────────────────────────

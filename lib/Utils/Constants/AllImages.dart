@@ -120,7 +120,7 @@ static const alarm = "assets/icons/alarm.svg";
   static const String sunlight = "assets/icons/sunlight.svg";
   static const String alQuran2 = "assets/icons/AlQuran2.svg";
   static const String umrahs = "assets/icons/Umrah_s.svg";
-
+  static const String quranpakiocn = "assets/icons/Quranpakiocn.svg";
 
 
   static const String musa = "assets/images/musa.png";

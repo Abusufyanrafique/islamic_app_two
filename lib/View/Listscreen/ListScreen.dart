@@ -4,8 +4,6 @@ import 'package:local_notification/Utils/Constants/AllImages.dart';
 import 'package:local_notification/Utils/Constants/SizeConfig.dart';
 import 'package:local_notification/View/Islamic_Calander/Islamic_Calander.dart';
 import 'package:local_notification/View/Listscreen/Profile/ProfileScreen.dart';
-import 'package:local_notification/View/Listscreen/subscreen/AlreadyReciter/AppointmentRequest.dart';
-import 'package:local_notification/View/Listscreen/subscreen/RegisterAsHafiz/RegisterAsHafiz.dart';
 import 'package:local_notification/hajj_and_Umrah_guide/hajj_umrah_splash_screen.dart';
 import '../../Utils/Constants/AllColors.dart';
 
@@ -21,10 +19,8 @@ class ListScreen extends StatelessWidget {
         centerTitle: true,
         title: Text(
           "List",
-          style:AppColors().customTextStyle12(
-            color: AppColors.black,
-          ).copyWith(
-            fontSize: getFont(26)
+          style:AppColors().customTextStyleBold16().copyWith(
+            fontSize: getFont(16),
           )
           ),
         ),
@@ -41,7 +37,7 @@ class ListScreen extends StatelessWidget {
                   children: [
                     AllListButton(
                       "Profile",
-                      AllImages.premium,
+                      "assets/icons/profile.svg",
                       onTap: () {
                         Navigator.push(
                           context,
@@ -255,14 +251,15 @@ class ListScreen extends StatelessWidget {
           vertical: getHeight(2)),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(6),
           boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 6,
-              offset: const Offset(0, 3),
-            ),
-          ],
+    BoxShadow(
+      color: Colors.black.withOpacity(0.25),
+      offset: const Offset(0, 1),
+      blurRadius: 2,
+      spreadRadius: 0,
+    ),
+  ],
         ),
         child: Row(
           children: [
@@ -291,7 +288,11 @@ class ListScreen extends StatelessWidget {
               ),
             ),
 
-            Icon(Icons.arrow_forward_ios),
+            SvgPicture.asset(
+            'assets/icons/arrowforward.svg',
+            width: getWidth(20),
+            height: getHeight(20),
+),
           ],
         ),
       ),
@@ -310,14 +311,15 @@ class ListScreen extends StatelessWidget {
         vertical: getHeight(10)),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(6),
+       boxShadow: [
+    BoxShadow(
+      color: Colors.black.withOpacity(0.25),
+      offset: const Offset(0, 1),
+      blurRadius: 4,
+      spreadRadius: 0,
+    ),
+  ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
