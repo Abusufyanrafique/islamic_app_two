@@ -761,18 +761,18 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
 
     // ✅ FIX: single onPlayerComplete listener that chains
     // Bismillah audio -> actual Ayah 1 audio, otherwise goes to next ayah.
-    _completeSub = audioHandler.player.onPlayerComplete.listen((_) {
-      if (_awaitingBismillahThenAyah && _pendingAyahAfterBismillah != null) {
-        final ayah = _pendingAyahAfterBismillah!;
-        _awaitingBismillahThenAyah = false;
-        _pendingAyahAfterBismillah = null;
-        if (ayah.audio != null) {
-          _playActualAyahAudio(ayah.audio!, ayah);
-        }
-      } else {
-        _playNextAyah();
-      }
-    });
+    // _completeSub = audioHandler.player.onPlayerComplete.listen((_) {
+    //   if (_awaitingBismillahThenAyah && _pendingAyahAfterBismillah != null) {
+    //     final ayah = _pendingAyahAfterBismillah!;
+    //     _awaitingBismillahThenAyah = false;
+    //     _pendingAyahAfterBismillah = null;
+    //     if (ayah.audio != null) {
+    //       _playActualAyahAudio(ayah.audio!, ayah);
+    //     }
+    //   } else {
+    //     _playNextAyah();
+    //   }
+    // });
 
     _playerStateSub = audioHandler.player.onPlayerStateChanged.listen((state) {
       if (!mounted) return;
