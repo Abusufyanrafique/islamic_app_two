@@ -531,7 +531,7 @@ class SubjectCard extends StatelessWidget {
             Text(
               subject.name,
               style: AppColors().customTextStyleBold16().copyWith(
-                fontSize: getFont(18)
+                fontSize: getFont(16)
               )
             ),
              SizedBox(height: getHeight(4)),

@@ -3,7 +3,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:local_notification/Utils/Constants/AllImages.dart';
 import 'package:local_notification/Utils/Constants/SizeConfig.dart';
 import 'package:local_notification/View/Islamic_Calander/Islamic_Calander.dart';
-import 'package:local_notification/View/Listscreen/Profile/ProfileScreen.dart';
 import 'package:local_notification/hajj_and_Umrah_guide/hajj_umrah_splash_screen.dart';
 import '../../Utils/Constants/AllColors.dart';
 
@@ -17,6 +16,13 @@ class ListScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
+         bottom: PreferredSize(
+    preferredSize: const Size.fromHeight(0.12),
+    child: Container(
+      color: const Color(0xFF6B7678),
+      height: 0.12,
+    ),
+  ),
         title: Text(
           "List",
           style:AppColors().customTextStyleBold16().copyWith(
