@@ -3,6 +3,7 @@ import 'package:local_notification/Utils/Constants/AllColors.dart';
 import 'package:local_notification/Utils/Constants/AllImages.dart';
 import 'package:local_notification/Utils/Constants/SizeConfig.dart';
 import 'package:local_notification/View/OnBoardingScreen/OnBoardingScreen.dart';
+import 'package:local_notification/Widgets/BottomNavigationBar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -24,20 +25,20 @@ class _SplashScreenState extends State<SplashScreen> {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool("isFirstTime") ?? true;
   }
-  Future<void> navigateNext() async {
-  await Future.delayed(const Duration(seconds: 5));
+  // Future<void> navigateNext() async {
+  // await Future.delayed(const Duration(seconds: 5));
 
-  if (!mounted) return;
+  // if (!mounted) return;
 
   // ===========================
   // Testing Navigation
   // 1. OnBoarding Screen
-  Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(
-      builder: (_) => OnBoardingScreen(),
-    ),
-  );
+  // Navigator.pushReplacement(
+  //   context,
+  //   MaterialPageRoute(
+  //     builder: (_) => OnBoardingScreen(),
+  //   ),
+  // );
 
   // 2. Bottom Navigation Screen
   /*
@@ -58,35 +59,35 @@ class _SplashScreenState extends State<SplashScreen> {
     ),
   );
   */
-}
+// }
 
-  // Future<void> navigateNext() async {
-  //   await Future.delayed(
-  //     const Duration(seconds: 3),
-  //   );
-  //   bool firstTime = await checkFirstTime();
-  //   if (!mounted) return;
-  //   if (firstTime) {
-  //     Navigator.pushReplacement(
-  //       context,
-  //       MaterialPageRoute(
+  Future<void> navigateNext() async {
+    await Future.delayed(
+      const Duration(seconds: 3),
+    );
+    bool firstTime = await checkFirstTime();
+    if (!mounted) return;
+    if (firstTime) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
 
-  //         builder: (_) => OnBoardingScreen(),
-  //       ),
-  //     );
-  //   } else {
+          builder: (_) => OnBoardingScreen(),
+        ),
+      );
+    } else {
 
-  //     Navigator.pushReplacement(
-  //       context,
-  //       MaterialPageRoute(
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
 
-  //         builder: (_) => BottomNavScreen(),
-  //       ),
-  //     );
+          builder: (_) => BottomNavScreen(),
+        ),
+      );
 
-  //   }
+    }
 
-  // }
+  }
 
   @override
   Widget build(BuildContext context) {

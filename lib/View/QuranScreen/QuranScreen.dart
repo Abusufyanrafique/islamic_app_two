@@ -1271,7 +1271,7 @@ class QuranAudioHandler extends BaseAudioHandler {
     });
   }
 
-  // ✅ FIXED: Cache-first playback — pehli dafa download, dobara instant
+
   Future<void> playAyah(String url, String title, String surahName) async {
     await _player.stop();
 
@@ -1286,7 +1286,7 @@ class QuranAudioHandler extends BaseAudioHandler {
     try {
       // Cache mein check karo — agar file hai to seedha local se play
       final file = await DefaultCacheManager().getSingleFile(url);
-      await _player.play(DeviceFileSource(file.path)); // ✅ local = instant
+      await _player.play(DeviceFileSource(file.path)); 
     } catch (e) {
       // Cache fail ho to direct URL fallback
       debugPrint('Cache miss, playing from URL: $e');
