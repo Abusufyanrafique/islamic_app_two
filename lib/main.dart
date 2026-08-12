@@ -13,6 +13,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
+import 'package:timezone/data/latest.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'Model/PrayerCacheModel.dart';
 import 'View/Home/subScreen/AllDuaScreen.dart';
@@ -25,6 +26,7 @@ Future<void> main() async {
   runZonedGuarded<Future<void>>(() async {
     WidgetsFlutterBinding.ensureInitialized();
     await PrayerAzanService.init();
+     tzdata.initializeTimeZones();
     debugPrint("STEP 1: WidgetsFlutterBinding done");
 
     try {

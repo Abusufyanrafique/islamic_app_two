@@ -136,12 +136,13 @@ class TasbihScreen extends StatelessWidget {
                                       color: isSelected ? const Color(0xffE0F7F6) : Colors.white,
                                       borderRadius: BorderRadius.circular(10),
                                       boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.2),
-                                          blurRadius: 1,
-                                          offset: const Offset(0, 1),
-                                        ),
-                                      ],
+    BoxShadow(
+      color: Colors.black.withOpacity(0.08),
+      blurRadius: 8,
+      spreadRadius: 1,
+      offset: const Offset(0, 2),
+    ),
+  ],
                                     ),
                                     child: Row(
                                       children: [
@@ -204,14 +205,14 @@ class TasbihScreen extends StatelessWidget {
                                   decoration: BoxDecoration(
                                     color: Colors.white, 
                                     borderRadius: BorderRadius.circular(6), 
-                                     boxShadow: [
-                                     BoxShadow(
-                                     color: Colors.black.withOpacity(0.25),
-                                     offset: const Offset(0, 1),
-                                     blurRadius: 4,
-                                    spreadRadius: 0,
-                                     ),
-                                    ],
+                                      boxShadow: [
+    BoxShadow(
+      color: Colors.black.withOpacity(0.08),
+      blurRadius: 10,
+      spreadRadius: 2,
+      offset: const Offset(0, 3),
+    ),
+  ],
                                     
                                       ),
                                   child: const Icon(Icons.refresh),
@@ -230,10 +231,16 @@ class TasbihScreen extends StatelessWidget {
                     height: getHeight(150), width: double.infinity,
                     decoration: BoxDecoration(color: Colors.white,
                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                        color: Colors.grey.withOpacity(0.2), 
-                        blurRadius: 6)]),
+                       boxShadow: [
+    BoxShadow(
+      color: Colors.black.withOpacity(0.08),
+      blurRadius: 10,
+      spreadRadius: 2,
+      offset: const Offset(0, 3),
+    ),
+  ],
+                        
+                        ),
                     child: Center(
                       child: state.selectedIndex == -1
                           ? const Text("Select Tasbih")

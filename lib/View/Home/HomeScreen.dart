@@ -566,109 +566,130 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
 
-          SvgPicture.asset(
-            AllImages.quranpak,
-             height: getHeight(150),
-             ),
+         SvgPicture.asset(
+  AllImages.quranpak,
+  width: getWidth(40),
+  height: getHeight(120),
+  fit: BoxFit.contain,
+)
         ],
       ),
     );
   }
 
   Widget _buildPrayerTable(
-    double width,
-    HomeState state,
-    BuildContext context,
-  ) {
-    return Expanded(
-      child: Container(
-        width: width,
-        height: getHeight(220),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          image: DecorationImage(
-            image: AssetImage(AllImages.prayertimebackground),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: SingleChildScrollView(
-          child: Theme(
-            data: Theme.of(context).copyWith(
-              dividerColor: Colors.transparent,
-              ),
-            child: DataTable(
-              columnSpacing: width * 0.12,
-              horizontalMargin: 15,
-              headingRowHeight: 45,
-              dividerThickness: 0.01,
-              columns: const [
-                DataColumn(
-                  label: Text(
-                    'Prayer',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                DataColumn(
-                  label: Text(
-                    'Adhan',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                DataColumn(
-                  label: Text(
-                    'Iqama',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-              rows: state.dynamicPrayerTimes
-                  .map(
-                    (time) => DataRow(
-                      cells: [
-                        DataCell(
-                          Text(
-                            time['Prayer']!,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              ),
-                          ),
-                        ),
-                        DataCell(
-                          Text(
-                            time['Adhun']!,
-                            style:  TextStyle(
-                              color: Colors.white,
-                              ),
-                          ),
-                        ),
-                        DataCell(
-                          Text(
-                            time['Iqama']!,
-                            style:  TextStyle(
-                              color: Colors.white,
-                              ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                  .toList(),
-            ),
-          ),
+  double width,
+  HomeState state,
+  BuildContext context,
+) {
+  return Expanded(
+    child: Container(
+      width: width,
+      height: getHeight(220),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        image: DecorationImage(
+          image: AssetImage(AllImages.prayertimebackground),
+          fit: BoxFit.cover,
         ),
       ),
-    );
-  }
+      child: Column(
+        children: [
+          // ✅ Fixed Header Row
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 15),
+            child: SizedBox(
+              height: 45,
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: width * 0.28,
+                    child: const Text(
+                      'Prayer',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: width * 0.28,
+                    child: const Text(
+                      'Adhan',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: width * 0.28,
+                    child: const Text(
+                      'Iqama',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
 
+          // ✅ Divider (optional)
+          Divider(color: Colors.white.withOpacity(0.3), height: 1),
+
+          // ✅ Scrollable Rows
+          Expanded(
+            child: ListView.builder(
+              itemCount: state.dynamicPrayerTimes.length,
+              itemBuilder: (context, index) {
+                final time = state.dynamicPrayerTimes[index];
+                return Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: getWidth(15),
+                     vertical: getHeight(6)),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: width * 0.28,
+                        child: Text(
+                          time['Prayer']!,
+                          style: AppColors().customTextStyle14(
+                            color: Colors.white,
+                            ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: width * 0.28,
+                        child: Text(
+                          time['Adhun']!,
+                          style: AppColors().customTextStyle14(
+                            color: Colors.white,
+                            ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: width * 0.28,
+                        child: Text(
+                          time['Iqama']!,
+                          style: AppColors().customTextStyle14(
+                            color: Colors.white,
+                            ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
   // Helper Methods
   String _getDayName() => [
     "Monday",

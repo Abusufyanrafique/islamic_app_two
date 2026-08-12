@@ -43,6 +43,7 @@ class HadithScreen extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             debugPrint(snapshot.error.toString());
            debugPrint(snapshot.stackTrace.toString());
+           print("URL: ${AllApiLink.AllHadithBook}");
 
             return Center(child: spinkit);
           }
@@ -59,21 +60,25 @@ class HadithScreen extends StatelessWidget {
               final book = booksList[index];
               return InkWell(
 
-                onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => HadithChaptersScreen(
-                      bookSlug: book.bookSlug!, // API se aaya hua slug
-                      bookName: book.bookName!,
-                    ),
-                  ),
-                );
-              },
-                child: HadithBookCard(index: book.id!,
-                  name: book.bookName??"",
-                  writerName: book.writerName??"",
-                  hadithCount:book.hadithsCount ??"" ,)
+               onTap: () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => HadithChaptersScreen(
+        bookSlug: book.bookSlug!,
+        bookName: book.bookName!,
+        totalHadiths: int.tryParse(book.hadithsCount ?? "") ?? 100, // ✅ real count
+      ),
+    ),
+  );
+},
+                // HadithBookCard ka index fix karo — id null ho sakta hai
+  child: HadithBookCard(
+  index: index + 1,   // book.id! ki jagah
+  name: book.bookName ?? "",
+  writerName: book.writerName ?? "",
+  hadithCount: book.hadithsCount ?? "",
+),
 
                 // Card(
                 //   child: ListTile(
@@ -95,11 +100,12 @@ class HadithScreen extends StatelessWidget {
 class HadithChaptersScreen extends StatelessWidget {
   final String bookSlug;
   final String bookName;
-
+  final int? totalHadiths;
   const HadithChaptersScreen({
     super.key, 
     required this.bookSlug, 
-    required this.bookName,
+    required this.bookName, 
+      this.totalHadiths,
     });
 
   @override
@@ -117,7 +123,11 @@ class HadithChaptersScreen extends StatelessWidget {
       ),
 
       body: FutureBuilder<AllHadithChaptersModel?>(
-        future: QuranApiService.fetchAlHadithChapterModel(bookSlug),
+        future: QuranApiService.fetchAlHadithChapterModel(
+          bookSlug,
+          total: totalHadiths!,
+          ),
+        
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             debugPrint("ERROR: ${snapshot.error}");
@@ -196,41 +206,64 @@ class HadithListScreen extends StatelessWidget {
               vertical: getHeight(12)),
             itemBuilder: (context, index) {
               final hadith = hadithList[index];
-              return Card(
-                elevation: 4,
-                margin:  EdgeInsets.only(bottom: getHeight(15)),
-                child: Padding(
-                  padding: EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text("Hadith No: ${hadith.hadithNumber}",
-                              style:TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryColor)),
-
-
-                          Text("Chapter No: ${hadith.chapterId}",
-                              style:TextStyle(fontWeight: FontWeight.w500, color: AppColors.primaryColor)),
-                        ],
-                      ),
-                      const Divider(),
-                      // Arabic
-                      Text(hadith.hadithArabic ?? "",
-                          textAlign: TextAlign.right,
-                          style:  TextStyle(fontSize: getFont(24), fontWeight: FontWeight.bold, fontFamily: 'ArabicFont')),
-                       SizedBox(height: getHeight(10)),
-                      // Urdu
-                      Text(hadith.hadithUrdu ?? "",
-                          textAlign: TextAlign.right,
-                          style:  TextStyle(fontSize: getFont(16), color: Colors.blueGrey)),
-                       SizedBox(height: getHeight(10)),
-                      // English
-                      Text(hadith.hadithEnglish ?? "",
-                          textAlign: TextAlign.left,
-                          style:  TextStyle(fontSize: getFont(14), fontStyle: FontStyle.italic)),
-                    ],
+              return Container(
+                decoration: BoxDecoration(
+                  color: AppColors.white
+                ),
+                child: Card(
+                  elevation: 4,
+                  margin:  EdgeInsets.only(bottom: getHeight(15)),
+                  child: Padding(
+                    padding: EdgeInsets.all(12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("Hadith No: ${hadith.hadithNumber}",
+                                style:AppColors().customTextStyle15(
+                                  color: AppColors.primaryColor
+                                ).copyWith(
+                                  fontWeight: FontWeight.bold
+                                )
+                                  ),
+                
+                
+                            Text(
+                              "Chapter No: ${hadith.chapterId}",
+                                style:AppColors().customTextStyle15(
+                                  color: AppColors.primaryColor
+                                ).copyWith(
+                                  fontWeight: FontWeight.bold
+                                )
+                                   ),
+                          ],
+                        ),
+                        const Divider(),
+                        // Arabic
+                        Text(hadith.hadithArabic ?? "",
+                            textAlign: TextAlign.right,
+                            style:  TextStyle(fontSize: getFont(24), fontWeight: FontWeight.bold, fontFamily: 'ArabicFont')),
+                         SizedBox(height: getHeight(10)),
+                        // Urdu
+                        Text(hadith.hadithUrdu ?? "",
+                            textAlign: TextAlign.right,
+                            style:  TextStyle(fontSize: getFont(16), color: Colors.blueGrey)),
+                         SizedBox(height: getHeight(10)),
+                        // English
+                        Text(
+                          hadith.hadithEnglish ?? "",
+                            textAlign: TextAlign.left,
+                            style: AppColors().customTextStyle14(
+                
+                            ).copyWith(
+                              height: 1.3,
+                              fontStyle: FontStyle.italic
+                            )
+                               ),
+                      ],
+                    ),
                   ),
                 ),
               );

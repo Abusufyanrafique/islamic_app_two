@@ -478,11 +478,11 @@ class PrayerTimeScreen extends StatelessWidget {
                             context
                                 .read<PrayerTimeCubit>()
                                 .onSwitchChanged(name, val, rawTime);
-                            if (val) {
-                              showSuccessToast('✅ $name azan scheduled');
+                           if (val) {
+                          showSuccessToast(context, '✅ $name azan scheduled');
                             } else {
-                              showErrorToast('🔕 $name azan cancelled');
-                            }
+                          showErrorToast(context, '🔕 $name azan cancelled');
+}
                           },
                         );
                       }),

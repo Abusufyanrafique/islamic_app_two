@@ -306,7 +306,7 @@ class _SubmitButton extends StatelessWidget {
       final appointmentId = await cubit.submit(deviceId: deviceId);
 
       if (context.mounted && appointmentId != null) {
-        showSuccessToast("Booked Successfully");
+        showSuccessToast(context,"Booked Successfully");
 
         Navigator.pushReplacement(
           context,

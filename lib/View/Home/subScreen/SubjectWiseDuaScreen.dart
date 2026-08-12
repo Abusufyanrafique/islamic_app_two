@@ -514,6 +514,14 @@ class SubjectCard extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: const Color(0xFFE0E0E0)),
+          boxShadow: [
+      BoxShadow(
+        color: Colors.grey.withOpacity(0.25),
+        offset: const Offset(0, 1),
+        blurRadius: 4,
+        spreadRadius: 0,
+      ),
+    ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

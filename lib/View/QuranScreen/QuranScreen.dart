@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:local_notification/Utils/Constants/AllText.dart';
 
 import '../../AllApiLink/AllApiLink.dart';
@@ -48,12 +49,12 @@ List<JuzModel> juzList = [
   JuzModel(number: 29, name: "تَبَارَكَ ٱلَّذِي",subname:"Tabarakallazi"),
   JuzModel(number: 30, name: "عَمَّ",subname:"Amma"),
 ];
+
 class ParahCard extends StatelessWidget {
   final int index;
   final String name;
   final String subname;
   VoidCallback ontap;
-
 
   ParahCard({
     super.key,
@@ -66,13 +67,11 @@ class ParahCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:  EdgeInsets.symmetric(
-        vertical: getHeight(8), ),
+      padding: EdgeInsets.symmetric(vertical: getHeight(8)),
       child: InkWell(
         onTap: ontap,
         child: Row(
           children: [
-            // Left vertical line
             Container(
               width: getWidth(6),
               height: getHeight(60),
@@ -81,13 +80,11 @@ class ParahCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-             SizedBox(width: getWidth(12)),
-
-            // Card
+            SizedBox(width: getWidth(12)),
             Expanded(
               child: Container(
-                padding:  EdgeInsets.symmetric(
-                  horizontal: getWidth(16), 
+                padding: EdgeInsets.symmetric(
+                  horizontal: getWidth(16),
                   vertical: getHeight(14)),
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -106,26 +103,24 @@ class ParahCard extends StatelessWidget {
                       children: [
                         SvgPicture.asset(
                           AllImages.numcover,
-                          height: getHeight(40), 
+                          height: getHeight(40),
                           width: getWidth(40)),
                         Text(
                           index.toString(),
-                          style:  TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.w500,
                             fontSize: getFont(12),
                           ),
                         ),
                       ],
                     ),
-                     SizedBox(width: getWidth(16)),
-
-                    // Name + Arabic Name
-
+                    SizedBox(width: getWidth(16)),
                     Expanded(
-                      child:  Text(
-                          subname,
-                          style:AppColors().customTextStyle14(color:
-                          Colors.black,fontWeight: FontWeight.w600)
+                      child: Text(
+                        subname,
+                        style: AppColors().customTextStyle14(
+                          color: Colors.black,
+                          fontWeight: FontWeight.w600)
                       ),
                     ),
                     Spacer(),
@@ -133,10 +128,7 @@ class ParahCard extends StatelessWidget {
                       name,
                       style: AppColors().customTextStyleAmiri22(color: Colors.black),
                       textDirection: TextDirection.rtl,
-
                     ),
-
-
                   ],
                 ),
               ),
@@ -147,6 +139,7 @@ class ParahCard extends StatelessWidget {
     );
   }
 }
+
 class SurahCard extends StatelessWidget {
   final int index;
   final String surahName;
@@ -166,12 +159,9 @@ class SurahCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:  EdgeInsets.symmetric(
-        vertical: getHeight(8),
-        ),
+      padding: EdgeInsets.symmetric(vertical: getHeight(8)),
       child: Row(
         children: [
-          // Left vertical line
           Container(
             width: getWidth(6),
             height: getHeight(60),
@@ -180,15 +170,12 @@ class SurahCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
             ),
           ),
-           SizedBox(width: getWidth(12)),
-
-          // Card
+          SizedBox(width: getWidth(12)),
           Expanded(
             child: Container(
-              padding:  EdgeInsets.symmetric(
-                horizontal: getWidth(16), 
-                vertical: getHeight(12),
-                ),
+              padding: EdgeInsets.symmetric(
+                horizontal: getWidth(16),
+                vertical: getHeight(12)),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
@@ -201,42 +188,38 @@ class SurahCard extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  // Number with image
                   Stack(
                     alignment: Alignment.center,
                     children: [
                       SvgPicture.asset(
                         AllImages.numcover,
-                        height: getHeight(40), 
-                        width: getWidth(40),
-                        ),
+                        height: getHeight(40),
+                        width: getWidth(40)),
                       Text(
                         index.toString(),
-                        style:  TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w500,
                           fontSize: getFont(12),
                         ),
                       ),
                     ],
                   ),
-                   SizedBox(width: getWidth(16)),
-
-                  // Surah Name + Ayah info
+                  SizedBox(width: getWidth(16)),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           surahName,
-                          style:  TextStyle(
+                          style: TextStyle(
                             fontSize: getFont(16),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                         SizedBox(height: getHeight(4)),
+                        SizedBox(height: getHeight(4)),
                         Text(
                           "$ayahCount Ayahs • $revelationType",
-                          style:  TextStyle(
+                          style: TextStyle(
                             fontSize: getFont(12),
                             color: Colors.grey,
                           ),
@@ -244,11 +227,9 @@ class SurahCard extends StatelessWidget {
                       ],
                     ),
                   ),
-
-                  // Arabic Name
                   Text(
                     arabicName,
-                    style:  TextStyle(
+                    style: TextStyle(
                       fontSize: getFont(20),
                       color: Color(0xff5BC0BE),
                       fontWeight: FontWeight.w600,
@@ -266,9 +247,11 @@ class SurahCard extends StatelessWidget {
 
 class JuzListScreens extends StatefulWidget {
   const JuzListScreens({super.key});
+
   @override
   State<JuzListScreens> createState() => _JuzListScreensState();
 }
+
 class _JuzListScreensState extends State<JuzListScreens>
     with SingleTickerProviderStateMixin {
   TabController? _tabController;
@@ -297,7 +280,6 @@ class _JuzListScreensState extends State<JuzListScreens>
   }
 
   void onSurahTap(Surahmodelsss surah) {
-
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -312,96 +294,101 @@ class _JuzListScreensState extends State<JuzListScreens>
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-
-       appBar: AppBar(
-  title: Text(
-    "Al Quran",
-   style:AppColors().customTextStyleBold16().copyWith(
-            fontSize: getFont(16),
-          )
-  ),
-  centerTitle: true,
-  bottom: PreferredSize(
-    preferredSize: const Size.fromHeight(0.12),
-    child: Container(
-      color: const Color(0xFF6B7678),
-      height: 0.12,
-    ),
-  ),
-),
-        body: Padding(
-          padding:  EdgeInsets.symmetric(
-            horizontal: getWidth(16),
+        appBar: AppBar(
+          title: Text(
+            "Al Quran",
+            style: AppColors().customTextStyleBold16().copyWith(
+              fontSize: getFont(16),
+            )
+          ),
+          centerTitle: true,
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(0.12),
+            child: Container(
+              color: const Color(0xFF6B7678),
+              height: 0.12,
             ),
+          ),
+        ),
+        body: Padding(
+          padding: EdgeInsets.symmetric(horizontal: getWidth(16)),
           child: Column(
             children: [
-              Card(
-                color: const Color(0xffF5F5F5),
-                elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: getWidth(12),
-                    vertical: getHeight(12),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      
-                      Expanded(
-                        flex: 2, 
-                        child: SvgPicture.asset(
-                          "assets/icons/Quranpakiocn.svg",
-                          height: getHeight(150), 
-                          fit: BoxFit.contain,
+              SizedBox(height: getHeight(10)),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.25),
+                      offset: const Offset(0, 1),
+                      blurRadius: 4,
+                      spreadRadius: 0,
+                    ),
+                  ],
+                ),
+                child: Card(
+                  color: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: getWidth(12),
+                      vertical: getHeight(12),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: SvgPicture.asset(
+                            "assets/icons/Quranpakiocn.svg",
+                            height: getHeight(150),
+                            fit: BoxFit.contain,
+                          ),
                         ),
-                      ),
-
-                      SizedBox(width: getWidth(10)),
-
-                      
-                      Expanded(
-                        flex: 2, 
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: SvgPicture.asset(
-                                AllImages.bismillah,
-                                height: getHeight(35),
-                                width: getWidth(178),
+                        SizedBox(width: getWidth(10)),
+                        Expanded(
+                          flex: 2,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: SvgPicture.asset(
+                                  AllImages.bismillah,
+                                  height: getHeight(35),
+                                  width: getWidth(178),
+                                ),
                               ),
-                            ),
-
-                            SizedBox(height: getHeight(15)),
-
-                            Text(
-                              AllText.quranKareem,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppColors().customTextStyleBold16(
-                                color: AppColors.black,
-                                fontWeight: FontWeight.bold,
+                              SizedBox(height: getHeight(15)),
+                              Text(
+                                AllText.quranKareem,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppColors().customTextStyleBold16(
+                                  color: AppColors.black,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-
-                            SizedBox(height: getHeight(8)),
-
-                            Text(
-                              AllText.multipletranslation,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppColors().customTextStyle12(
-                                color: AppColors.black.withOpacity(0.7),
-                                fontWeight: FontWeight.w400,
+                              SizedBox(height: getHeight(8)),
+                              Text(
+                                AllText.multipletranslation,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppColors().customTextStyle12(
+                                  color: AppColors.black.withOpacity(0.7),
+                                  fontWeight: FontWeight.w400,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -419,53 +406,50 @@ class _JuzListScreensState extends State<JuzListScreens>
                 },
                 tabs: [
                   const Tab(text: "Para"),
-                  if (showSurahTab) const Tab(text: "Surah") else const Tab(text: ""),
+                  if (showSurahTab)
+                    const Tab(text: "Surah")
+                  else
+                    const Tab(text: ""),
                 ],
               ),
 
-              Expanded(child:
-              TabBarView(
-                controller: _tabController,
-                physics: showSurahTab
-                    ? const AlwaysScrollableScrollPhysics()
-                    : const NeverScrollableScrollPhysics(),
-                children: [
-                  // ===== Para Tab =====
-                  ListView.builder(
-                    padding: const EdgeInsets.all(10),
-                    itemCount: juzList.length,
-                    itemBuilder: (context, index) {
-                      final juz = juzList[index];
-                      final juzNumber = index + 1;
-                      return ParahCard(
-                        index: juzNumber,
-                        name: juz.name,
-                        subname: juz.subname,
-                        ontap: () => onJuzTap(juzNumber),);
-
-                    },
-                  ),
-
-                  // ===== Surah Tab =====
-                  JuzDetailScreen(
-                    key: ValueKey(selectedJuz),
-                    juzNumber: selectedJuz,
-                    onSurahTap: onSurahTap,
-                  )
-                ],
-              ),
-
-
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  physics: showSurahTab
+                      ? const AlwaysScrollableScrollPhysics()
+                      : const NeverScrollableScrollPhysics(),
+                  children: [
+                    ListView.builder(
+                      padding: const EdgeInsets.all(10),
+                      itemCount: juzList.length,
+                      itemBuilder: (context, index) {
+                        final juz = juzList[index];
+                        final juzNumber = index + 1;
+                        return ParahCard(
+                          index: juzNumber,
+                          name: juz.name,
+                          subname: juz.subname,
+                          ontap: () => onJuzTap(juzNumber),
+                        );
+                      },
+                    ),
+                    JuzDetailScreen(
+                      key: ValueKey(selectedJuz),
+                      juzNumber: selectedJuz,
+                      onSurahTap: onSurahTap,
+                    )
+                  ],
+                ),
               )
-
             ],
           ),
         ),
-
       ),
     );
   }
 }
+
 class JuzDetailScreen extends StatefulWidget {
   final int juzNumber;
   final Function(Surahmodelsss) onSurahTap;
@@ -479,6 +463,7 @@ class JuzDetailScreen extends StatefulWidget {
   @override
   State<JuzDetailScreen> createState() => _JuzDetailScreenState();
 }
+
 class _JuzDetailScreenState extends State<JuzDetailScreen> {
   QuranResponseModel? _data;
   bool _loading = true;
@@ -488,6 +473,7 @@ class _JuzDetailScreenState extends State<JuzDetailScreen> {
     super.initState();
     _loadJuz();
   }
+
   Future<void> _loadJuz() async {
     if (!mounted) return;
     setState(() => _loading = true);
@@ -511,7 +497,7 @@ class _JuzDetailScreenState extends State<JuzDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final List<AyahModel> ayahs =
-    (_data?.data?.ayahs ?? []).cast<AyahModel>();
+        (_data?.data?.ayahs ?? []).cast<AyahModel>();
 
     final Map<int, Surahmodelsss> surahMap = {};
     for (final ayah in ayahs) {
@@ -523,98 +509,95 @@ class _JuzDetailScreenState extends State<JuzDetailScreen> {
     return _loading
         ? Center(child: spinkit)
         : ListView(
-      padding:  EdgeInsets.all(10),
-      children: surahMap.values.map((s) {
-        return GestureDetector(
-          onTap: () => widget.onSurahTap(s),
-          child: Padding(
-            padding:  EdgeInsets.symmetric(
-              vertical: getHeight(8),),
-            child: Row(
-              children: [
-                // Left vertical line
-                Container(
-                  width: getWidth(6),
-                  height: getHeight(60),
-                  decoration: BoxDecoration(
-                    color: const Color(0xff5BC0BE),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                 SizedBox(width: getWidth(12)),
-
-                // Card
-                Expanded(
-                  child: Container(
-                    padding:  EdgeInsets.symmetric(
-                      horizontal: getWidth(16), 
-                      vertical: getHeight(14)),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.2),
-                          blurRadius: 6,
-                        )
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        // Number with image
-                        Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            SvgPicture.asset(AllImages.numcover,height: 40, width: 40),
-                            Text(
-                              '${s.number}',
-                              style:  TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: getFont(12),
-                              ),
-                            ),
-                          ],
+            padding: EdgeInsets.all(10),
+            children: surahMap.values.map((s) {
+              return GestureDetector(
+                onTap: () => widget.onSurahTap(s),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: getHeight(8)),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: getWidth(6),
+                        height: getHeight(60),
+                        decoration: BoxDecoration(
+                          color: const Color(0xff5BC0BE),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                         SizedBox(width: getWidth(16)),
-
-                        // Surah Name + Ayah info
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                      ),
+                      SizedBox(width: getWidth(12)),
+                      Expanded(
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: getWidth(16),
+                            vertical: getHeight(14)),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.2),
+                                blurRadius: 6,
+                              )
+                            ],
+                          ),
+                          child: Row(
                             children: [
-                              Text(
-                                s.englishName ?? '',
-                                style:  TextStyle(
-                                  fontSize: getFont(16),
-                                  fontWeight: FontWeight.w600,
-                                ),
+                              Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  SvgPicture.asset(
+                                    AllImages.numcover,
+                                    height: 40,
+                                    width: 40),
+                                  Text(
+                                    '${s.number}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: getFont(12),
+                                    ),
+                                  ),
+                                ],
                               ),
-                               SizedBox(height: getHeight(4)),
-                              Text(
-                                "${s.numberOfAyahs}Ayahs • ${s.revelationType}",
-                                style:  TextStyle(
-                                  fontSize: getFont(14),
-                                  color: Colors.grey,
+                              SizedBox(width: getWidth(16)),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      s.englishName ?? '',
+                                      style: TextStyle(
+                                        fontSize: getFont(16),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    SizedBox(height: getHeight(4)),
+                                    Text(
+                                      "${s.numberOfAyahs}Ayahs • ${s.revelationType}",
+                                      style: TextStyle(
+                                        fontSize: getFont(14),
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
-        );
-
-
-
-      }).toList(),
-    );
+              );
+            }).toList(),
+          );
   }
 }
+
+// ═══════════════════════════════════════════════════════════════
+// SURAH DETAIL SCREEN — Audio caching + pre-fetch fix
+// ═══════════════════════════════════════════════════════════════
 class SurahDetailssScreen extends StatefulWidget {
   final Surahmodelsss surah;
 
@@ -631,28 +614,21 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
   bool _isPlaying = false;
   int? _loadingAyahNumber;
 
-  // ── Bismillah audio fix: state to chain Bismillah -> actual Ayah 1 ──
   static const String _bismillahAudioUrl =
       "https://cdn.islamic.network/quran/audio/128/ar.alafasy/1.mp3";
   bool _awaitingBismillahThenAyah = false;
   AyahModel? _pendingAyahAfterBismillah;
 
-  final ValueNotifier<Duration> _positionNotifier = ValueNotifier(Duration.zero);
-  final ValueNotifier<Duration> _durationNotifier = ValueNotifier(Duration.zero);
+  final ValueNotifier<Duration> _positionNotifier =
+      ValueNotifier(Duration.zero);
+  final ValueNotifier<Duration> _durationNotifier =
+      ValueNotifier(Duration.zero);
 
   StreamSubscription? _durationSub;
   StreamSubscription? _positionSub;
   StreamSubscription? _completeSub;
   StreamSubscription? _playerStateSub;
 
-  // ── Bismillah handling (FIX) ─────────────────────────────────────
-  // API text for ayah 1 of most surahs (except Al-Fatiha & At-Tawbah)
-  // comes bundled as "Bismillah + actual ayah 1" in a single string,
-  // but the per-ayah audio only contains the actual ayah 1 recitation.
-  // That mismatch is what was showing on screen. We now detect and
-  // separate the Bismillah so the displayed ayah text matches the audio,
-  // AND we play the Bismillah audio first, then chain into the actual
-  // ayah 1 audio automatically.
   static const List<String> _bismillahVariants = [
     "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
     "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
@@ -660,7 +636,6 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
   ];
 
   String _removeDiacritics(String input) {
-    // Strips Arabic harakat/tashkeel marks for loose comparison
     final regex = RegExp(
       r'[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED]',
     );
@@ -668,84 +643,53 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
   }
 
   bool _isBismillahExcludedSurah(int? surahNumber) {
-    // Surah 1 (Al-Fatiha): Bismillah IS ayah 1 -> don't touch.
-    // Surah 9 (At-Tawbah): has no Bismillah at all -> don't touch.
     return surahNumber == 1 || surahNumber == 9;
   }
 
- bool _hasBismillahPrefix(
-  String text,
-  int? surahNumber,
-  int? numberInSurah,
-) {
-  if (numberInSurah != 1) return false;
+  bool _hasBismillahPrefix(String text, int? surahNumber, int? numberInSurah) {
+    if (numberInSurah != 1) return false;
+    if (_isBismillahExcludedSurah(surahNumber)) return false;
 
-  // Al-Fatiha = Bismillah itself is Ayah 1
-  // At-Tawbah = no Bismillah
-  if (_isBismillahExcludedSurah(surahNumber)) {
-    return false;
+    final normalizedText = _removeDiacritics(text)
+        .replaceAll('ٱ', 'ا')
+        .replaceAll('أ', 'ا')
+        .replaceAll('إ', 'ا')
+        .replaceAll('آ', 'ا')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+
+    const normalizedBismillah = 'بسم الله الرحمن الرحيم';
+    return normalizedText.startsWith(normalizedBismillah);
   }
 
-  final normalizedText = _removeDiacritics(text)
-      .replaceAll('ٱ', 'ا')
-      .replaceAll('أ', 'ا')
-      .replaceAll('إ', 'ا')
-      .replaceAll('آ', 'ا')
-      .replaceAll(RegExp(r'\s+'), ' ')
-      .trim();
+  String _stripBismillahPrefix(
+      String text, int? surahNumber, int? numberInSurah) {
+    if (!_hasBismillahPrefix(text, surahNumber, numberInSurah)) return text;
 
-  const normalizedBismillah =
-      'بسم الله الرحمن الرحيم';
+    final trimmed = text.trim();
+    for (final variant in _bismillahVariants) {
+      if (trimmed.startsWith(variant)) {
+        return trimmed.substring(variant.length).trim();
+      }
+    }
 
-  return normalizedText.startsWith(normalizedBismillah);
-}
+    final normalizedText = _removeDiacritics(trimmed)
+        .replaceAll('ٱ', 'ا')
+        .replaceAll('أ', 'ا')
+        .replaceAll('إ', 'ا')
+        .replaceAll('آ', 'ا')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
 
-  /// Returns the ayah text with the Bismillah prefix removed (if present),
-  /// so what's shown matches what the per-ayah audio actually recites.
- String _stripBismillahPrefix(
-  String text,
-  int? surahNumber,
-  int? numberInSurah,
-) {
-  if (!_hasBismillahPrefix(
-    text,
-    surahNumber,
-    numberInSurah,
-  )) {
+    const bismillah = 'بسم الله الرحمن الرحيم';
+    if (normalizedText.startsWith(bismillah)) {
+      final words = trimmed.split(RegExp(r'\s+'));
+      if (words.length > 4) return words.sublist(4).join(' ').trim();
+    }
+
     return text;
   }
 
-  final trimmed = text.trim();
-
-  // Exact Bismillah variants ko check karo
-  for (final variant in _bismillahVariants) {
-    if (trimmed.startsWith(variant)) {
-      return trimmed.substring(variant.length).trim();
-    }
-  }
-
-  // Arabic text ko normalize karo
-  final normalizedText = _removeDiacritics(trimmed)
-      .replaceAll('ٱ', 'ا')
-      .replaceAll('أ', 'ا')
-      .replaceAll('إ', 'ا')
-      .replaceAll('آ', 'ا')
-      .replaceAll(RegExp(r'\s+'), ' ')
-      .trim();
-
-  const bismillah = 'بسم الله الرحمن الرحيم';
-
-  if (normalizedText.startsWith(bismillah)) {
-    final words = trimmed.split(RegExp(r'\s+'));
-
-    if (words.length > 4) {
-      return words.sublist(4).join(' ').trim();
-    }
-  }
-
-  // IMPORTANT: fallback return
-  return text;
-}
   @override
   void initState() {
     super.initState();
@@ -759,26 +703,24 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
       _positionNotifier.value = p;
     });
 
-    // ✅ FIX: single onPlayerComplete listener that chains
-    // Bismillah audio -> actual Ayah 1 audio, otherwise goes to next ayah.
-    // _completeSub = audioHandler.player.onPlayerComplete.listen((_) {
-    //   if (_awaitingBismillahThenAyah && _pendingAyahAfterBismillah != null) {
-    //     final ayah = _pendingAyahAfterBismillah!;
-    //     _awaitingBismillahThenAyah = false;
-    //     _pendingAyahAfterBismillah = null;
-    //     if (ayah.audio != null) {
-    //       _playActualAyahAudio(ayah.audio!, ayah);
-    //     }
-    //   } else {
-    //     _playNextAyah();
-    //   }
-    // });
+    _completeSub = audioHandler.player.onPlayerComplete.listen((_) {
+      if (_awaitingBismillahThenAyah && _pendingAyahAfterBismillah != null) {
+        final ayah = _pendingAyahAfterBismillah!;
+        _awaitingBismillahThenAyah = false;
+        _pendingAyahAfterBismillah = null;
+        if (ayah.audio != null) {
+          _playActualAyahAudio(ayah.audio!, ayah);
+        }
+      } else {
+        _playNextAyah();
+      }
+    });
 
-    _playerStateSub = audioHandler.player.onPlayerStateChanged.listen((state) {
+    _playerStateSub =
+        audioHandler.player.onPlayerStateChanged.listen((state) {
       if (!mounted) return;
       setState(() {
         _isPlaying = state == PlayerState.playing;
-
         if (state == PlayerState.playing) {
           _loadingAyahNumber = null;
         }
@@ -789,7 +731,8 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
   void _playNextAyah() {
     final ayahs = _data?.data?.ayahs ?? [];
     if (_playingAyah == null || ayahs.isEmpty) return;
-    final currentIndex = ayahs.indexWhere((a) => a.number == _playingAyah!.number);
+    final currentIndex =
+        ayahs.indexWhere((a) => a.number == _playingAyah!.number);
     if (currentIndex != -1 && currentIndex < ayahs.length - 1) {
       final nextAyah = ayahs[currentIndex + 1];
       if (nextAyah.audio != null) _playAudio(nextAyah.audio!, nextAyah);
@@ -801,7 +744,8 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
   void _playPreviousAyah() {
     final ayahs = _data?.data?.ayahs ?? [];
     if (_playingAyah == null || ayahs.isEmpty) return;
-    final currentIndex = ayahs.indexWhere((a) => a.number == _playingAyah!.number);
+    final currentIndex =
+        ayahs.indexWhere((a) => a.number == _playingAyah!.number);
     if (currentIndex > 0) {
       final prevAyah = ayahs[currentIndex - 1];
       if (prevAyah.audio != null) _playAudio(prevAyah.audio!, prevAyah);
@@ -822,11 +766,38 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
         const SnackBar(content: Text("Failed to load Surah")),
       );
     }
+
+    // ✅ Surah load hone ke baad pehli 3 ayahs pre-cache karo background mein
+    _prefetchFirstAyahs();
   }
 
-  /// Entry point used everywhere (tap on ayah, next/previous).
-  /// If this ayah needs a Bismillah intro, play Bismillah first,
-  /// then automatically chain into the actual ayah audio.
+  // ✅ NEW: Pehli 3 ayahs ka audio silently download karo
+  void _prefetchFirstAyahs() {
+    final ayahs = _data?.data?.ayahs ?? [];
+    final count = ayahs.length < 3 ? ayahs.length : 3;
+    for (int i = 0; i < count; i++) {
+      final url = ayahs[i].audio;
+      if (url != null) {
+        DefaultCacheManager().getSingleFile(url).catchError((_) {});
+      }
+    }
+    // Bismillah audio bhi pre-cache karo
+    DefaultCacheManager().getSingleFile(_bismillahAudioUrl).catchError((_) {});
+  }
+
+  // ✅ NEW: Current ayah ke baad wali ayah background mein cache karo
+  void _prefetchNextAyah(AyahModel currentAyah) {
+    final ayahs = _data?.data?.ayahs ?? [];
+    final currentIndex =
+        ayahs.indexWhere((a) => a.number == currentAyah.number);
+    if (currentIndex != -1 && currentIndex < ayahs.length - 1) {
+      final nextUrl = ayahs[currentIndex + 1].audio;
+      if (nextUrl != null) {
+        DefaultCacheManager().getSingleFile(nextUrl).catchError((_) {});
+      }
+    }
+  }
+
   Future<void> _playAudio(String url, AyahModel ayah) async {
     final needsBismillahIntro = _hasBismillahPrefix(
       ayah.text ?? "",
@@ -846,9 +817,6 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
       }
       _positionNotifier.value = Duration.zero;
       _durationNotifier.value = Duration.zero;
-
-      // Clear any stray next/previous/complete callbacks from a
-      // previous ayah while the Bismillah intro plays.
       audioHandler.onTrackComplete = null;
 
       try {
@@ -862,13 +830,12 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
         _awaitingBismillahThenAyah = false;
         _pendingAyahAfterBismillah = null;
       }
-      return; // rest handled by the onPlayerComplete listener above
+      return;
     }
 
     await _playActualAyahAudio(url, ayah);
   }
 
-  /// Plays the actual per-ayah recitation (no Bismillah involved).
   Future<void> _playActualAyahAudio(String url, AyahModel ayah) async {
     if (mounted) {
       setState(() {
@@ -887,15 +854,15 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
         widget.surah.englishName ?? 'Quran',
       );
     } catch (e) {
-      if (mounted) {
-        setState(() => _loadingAyahNumber = null);
-      }
+      if (mounted) setState(() => _loadingAyahNumber = null);
       return;
     }
 
     audioHandler.onSkipToNext = _playNextAyah;
     audioHandler.onSkipToPrevious = _playPreviousAyah;
-    audioHandler.onTrackComplete = _playNextAyah;
+
+    // ✅ Next ayah background mein pre-fetch — tap karte waqt ready ho
+    _prefetchNextAyah(ayah);
   }
 
   @override
@@ -922,204 +889,208 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
     final surahNumber = widget.surah.number;
 
     return Scaffold(
-     appBar: AppBar(
-  centerTitle: true,
-  toolbarHeight: getHeight(65),
-  title: Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Text(
-        widget.surah.englishName ?? '',
-        style:AppColors().customTextStyleBold16()
-      ),
-      SizedBox(height: getHeight(3),),
-      Text(
-        widget.surah.englishNameTranslation ?? '',
-        style: AppColors().customTextStyle14(
-          color: const Color(0xff5BC0BE),
-        ).copyWith(
-          fontSize: getFont(12)
+      appBar: AppBar(
+        centerTitle: true,
+        toolbarHeight: getHeight(65),
+        title: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              widget.surah.englishName ?? '',
+              style: AppColors().customTextStyleBold16()
+            ),
+            SizedBox(height: getHeight(3)),
+            Text(
+              widget.surah.englishNameTranslation ?? '',
+              style: AppColors().customTextStyle14(
+                color: const Color(0xff5BC0BE),
+              ).copyWith(fontSize: getFont(12)),
+            ),
+          ],
         ),
       ),
-    ],
-  ),
-),
       body: _loading
           ? Center(child: spinkit)
           : Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.all(10),
-              itemCount: ayahs.length,
-              itemBuilder: (context, index) {
-                final ayah = ayahs[index];
-                final isPlaying =
-                    _playingAyah?.number == ayah.number && _isPlaying;
-                final isLoadingThis = _loadingAyahNumber == ayah.number;
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    padding: EdgeInsets.all(10),
+                    itemCount: ayahs.length,
+                    itemBuilder: (context, index) {
+                      final ayah = ayahs[index];
+                      final isPlaying =
+                          _playingAyah?.number == ayah.number && _isPlaying;
+                      final isLoadingThis =
+                          _loadingAyahNumber == ayah.number;
 
-                // ── FIX: separate Bismillah from ayah 1 text ─────────
-                final rawText = ayah.text ?? "";
-                final showBismillahHeader = _hasBismillahPrefix(
-                  rawText,
-                  surahNumber,
-                  ayah.numberInSurah,
-                );
-                final displayText = showBismillahHeader
-                    ? _stripBismillahPrefix(rawText, surahNumber, ayah.numberInSurah)
-                    : rawText;
+                      final rawText = ayah.text ?? "";
+                      final showBismillahHeader = _hasBismillahPrefix(
+                        rawText,
+                        surahNumber,
+                        ayah.numberInSurah,
+                      );
+                      final displayText = showBismillahHeader
+                          ? _stripBismillahPrefix(
+                              rawText, surahNumber, ayah.numberInSurah)
+                          : rawText;
 
-                return Container(
-                  key: ValueKey(ayah.number),
-                  margin: EdgeInsets.only(bottom: getHeight(16)),
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.15),
-                        blurRadius: 6,
-                      )
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Juz: ${ayah.juz}  |  Page: ${ayah.page}",
-                            style: TextStyle(
-                                fontSize: getFont(12),
-                                 color: Colors.grey,
-                                 ),
-                          ),
-                          Row(
-                            children: [
-                              GestureDetector(
-                                onTap: isLoadingThis
-                                    ? null
-                                    : () async {
-                                  if (_playingAyah?.number == ayah.number) {
-                                    if (_isPlaying) {
-                                      await audioHandler.player.pause();
-                                    } else {
-                                      await audioHandler.player.resume();
-                                    }
-                                  } else if (ayah.audio != null) {
-                                    _playAudio(ayah.audio!, ayah);
-                                  }
-                                },
-                                child: Container(
-                                  width: getWidth(30),
-                                  height: getHeight(30),
-                                  decoration: BoxDecoration(
-                                    color: isPlaying
-                                        ? const Color(0xFFE6F1FB)
-                                        : const Color(0xff5BC0BE),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Center(
-                                    child: isLoadingThis
-                                        ? SpinKitFadingCircle(
-                                      color: isPlaying
-                                          ? const Color(0xff5BC0BE)
-                                          : Colors.white,
-                                      size: 20,
-                                    )
-                                        : Icon(
-                                      isPlaying
-                                          ? Icons.pause
-                                          : Icons.play_arrow,
-                                      color: Colors.white,
-                                      size: 20,
-                                    ),
+                      return Container(
+                        key: ValueKey(ayah.number),
+                        margin: EdgeInsets.only(bottom: getHeight(16)),
+                        padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.15),
+                              blurRadius: 6,
+                            )
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Juz: ${ayah.juz}  |  Page: ${ayah.page}",
+                                  style: TextStyle(
+                                    fontSize: getFont(12),
+                                    color: Colors.grey,
                                   ),
                                 ),
-                              ),
-                              SizedBox(width: getWidth(15)),
-                              Container(
-                                width: getWidth(30),
-                                height: getHeight(30),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xff5BC0BE),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    "${ayah.numberInSurah}",
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
+                                Row(
+                                  children: [
+                                    GestureDetector(
+                                      onTap: isLoadingThis
+                                          ? null
+                                          : () async {
+                                              if (_playingAyah?.number ==
+                                                  ayah.number) {
+                                                if (_isPlaying) {
+                                                  await audioHandler.player
+                                                      .pause();
+                                                } else {
+                                                  await audioHandler.player
+                                                      .resume();
+                                                }
+                                              } else if (ayah.audio != null) {
+                                                _playAudio(
+                                                    ayah.audio!, ayah);
+                                              }
+                                            },
+                                      child: Container(
+                                        width: getWidth(30),
+                                        height: getHeight(30),
+                                        decoration: BoxDecoration(
+                                          color: isPlaying
+                                              ? const Color(0xFFE6F1FB)
+                                              : const Color(0xff5BC0BE),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Center(
+                                          child: isLoadingThis
+                                              ? SpinKitFadingCircle(
+                                                  color: isPlaying
+                                                      ? const Color(
+                                                          0xff5BC0BE)
+                                                      : Colors.white,
+                                                  size: 20,
+                                                )
+                                              : Icon(
+                                                  isPlaying
+                                                      ? Icons.pause
+                                                      : Icons.play_arrow,
+                                                  color: Colors.white,
+                                                  size: 20,
+                                                ),
+                                        ),
+                                      ),
                                     ),
+                                    SizedBox(width: getWidth(15)),
+                                    Container(
+                                      width: getWidth(30),
+                                      height: getHeight(30),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xff5BC0BE),
+                                        borderRadius:
+                                            BorderRadius.circular(20),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          "${ayah.numberInSurah}",
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              ],
+                            ),
+                            if (showBismillahHeader) ...[
+                              SizedBox(height: getHeight(14)),
+                              Center(
+                                child: Text(
+                                  _bismillahVariants.first,
+                                  style: AppColors().customTextStyleAmiri22(
+                                    color: const Color(0xff5BC0BE),
                                   ),
+                                  textDirection: TextDirection.rtl,
+                                  textAlign: TextAlign.center,
                                 ),
                               ),
                             ],
-                          )
-                        ],
-                      ),
-
-                      // ── FIX: Bismillah shown separately, above ayah 1 ──
-                      if (showBismillahHeader) ...[
-                        SizedBox(height: getHeight(14)),
-                        Center(
-                          child: Text(
-                            _bismillahVariants.first,
-                            style: AppColors().customTextStyleAmiri22(
-                              color: const Color(0xff5BC0BE),
+                            SizedBox(height: getHeight(16)),
+                            Text(
+                              displayText,
+                              style: AppColors().customTextStyleAmiri24(
+                                  color: Colors.black87,
+                                  height: getHeight(2.5)),
+                              textDirection: TextDirection.rtl,
+                              textAlign: TextAlign.right,
                             ),
-                            textDirection: TextDirection.rtl,
-                            textAlign: TextAlign.center,
-                          ),
+                          ],
                         ),
-                      ],
-
-                      SizedBox(height: getHeight(16)),
-                      Text(
-                        displayText,
-                        style: AppColors().customTextStyleAmiri24(
-                            color: Colors.black87, height: getHeight(2.5)),
-                        textDirection: TextDirection.rtl,
-                        textAlign: TextAlign.right,
-                      ),
-                    ],
+                      );
+                    },
                   ),
-                );
-              },
-            ),
-          ),
+                ),
 
-          // ── Mini Player ─────────────────────────────────────────
-          if (_playingAyah != null)
-            _MiniPlayerBar(
-              revelationType: widget.surah.revelationType ?? '',
-              englishName: widget.surah.englishName ?? '',
-              numberInSurah: _playingAyah?.numberInSurah,
-              isPlaying: _isPlaying,
-              isLoading: _loadingAyahNumber == _playingAyah?.number,
-              positionNotifier: _positionNotifier,
-              durationNotifier: _durationNotifier,
-              formatDuration: _formatDuration,
-              onPlayPause: () async {
-                if (_isPlaying) {
-                  await audioHandler.player.pause();
-                } else {
-                  await audioHandler.player.resume();
-                }
-              },
-              onSeek: (value) async {
-                await audioHandler.player.seek(Duration(seconds: value.toInt()));
-              },
+                if (_playingAyah != null)
+                  _MiniPlayerBar(
+                    revelationType: widget.surah.revelationType ?? '',
+                    englishName: widget.surah.englishName ?? '',
+                    numberInSurah: _playingAyah?.numberInSurah,
+                    isPlaying: _isPlaying,
+                    isLoading:
+                        _loadingAyahNumber == _playingAyah?.number,
+                    positionNotifier: _positionNotifier,
+                    durationNotifier: _durationNotifier,
+                    formatDuration: _formatDuration,
+                    onPlayPause: () async {
+                      if (_isPlaying) {
+                        await audioHandler.player.pause();
+                      } else {
+                        await audioHandler.player.resume();
+                      }
+                    },
+                    onSeek: (value) async {
+                      await audioHandler.player
+                          .seek(Duration(seconds: value.toInt()));
+                    },
+                  ),
+              ],
             ),
-        ],
-      ),
     );
   }
 }
-
 
 class _MiniPlayerBar extends StatelessWidget {
   final String revelationType;
@@ -1156,8 +1127,7 @@ class _MiniPlayerBar extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.music_note, 
-              color: Colors.white60, size: 18),
+              const Icon(Icons.music_note, color: Colors.white60, size: 18),
               SizedBox(width: getWidth(8)),
               Expanded(
                 child: Column(
@@ -1167,8 +1137,7 @@ class _MiniPlayerBar extends StatelessWidget {
                     Text(revelationType,
                         style: TextStyle(
                             color: Colors.white60,
-                             fontSize: getFont(11),
-                             )),
+                            fontSize: getFont(11))),
                     Text(
                       '$englishName · آیت $numberInSurah',
                       style: TextStyle(
@@ -1182,22 +1151,22 @@ class _MiniPlayerBar extends StatelessWidget {
               ),
               isLoading
                   ? const Padding(
-                padding: EdgeInsets.all(6.0),
-                child:SpinKitFadingCircle (
-                  color: Colors.white,
-                  size: 18,
-                ),
-              )
+                      padding: EdgeInsets.all(6.0),
+                      child: SpinKitFadingCircle(
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    )
                   : IconButton(
-                icon: Icon(
-                  isPlaying
-                      ? Icons.pause_circle_filled
-                      : Icons.play_circle_filled,
-                  color: Colors.white,
-                  size: 32,
-                ),
-                onPressed: onPlayPause,
-              ),
+                      icon: Icon(
+                        isPlaying
+                            ? Icons.pause_circle_filled
+                            : Icons.play_circle_filled,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                      onPressed: onPlayPause,
+                    ),
             ],
           ),
           ValueListenableBuilder<Duration>(
@@ -1210,15 +1179,14 @@ class _MiniPlayerBar extends StatelessWidget {
                       ? duration.inSeconds.toDouble()
                       : 1.0;
                   final valueSeconds =
-                  position.inSeconds.toDouble().clamp(0, maxSeconds);
+                      position.inSeconds.toDouble().clamp(0, maxSeconds);
 
                   return Row(
                     children: [
                       Text(formatDuration(position),
                           style: TextStyle(
                               color: Colors.white60,
-                               fontSize: getFont(10),
-                               )),
+                              fontSize: getFont(10))),
                       SizedBox(width: getWidth(6)),
                       Expanded(
                         child: SliderTheme(
@@ -1245,8 +1213,7 @@ class _MiniPlayerBar extends StatelessWidget {
                       Text(formatDuration(duration),
                           style: TextStyle(
                               color: Colors.white60,
-                               fontSize: getFont(10),
-                               )),
+                              fontSize: getFont(10))),
                     ],
                   );
                 },
@@ -1258,6 +1225,10 @@ class _MiniPlayerBar extends StatelessWidget {
     );
   }
 }
+
+// ═══════════════════════════════════════════════════════════════
+// QURAN AUDIO HANDLER — Cache-first playback (delay fix)
+// ═══════════════════════════════════════════════════════════════
 class QuranAudioHandler extends BaseAudioHandler {
   final AudioPlayer _player = AudioPlayer();
 
@@ -1283,7 +1254,6 @@ class QuranAudioHandler extends BaseAudioHandler {
             : AudioProcessingState.ready,
       ));
 
-  
       if (state == PlayerState.completed) {
         onTrackComplete?.call();
       }
@@ -1301,8 +1271,10 @@ class QuranAudioHandler extends BaseAudioHandler {
     });
   }
 
+  // ✅ FIXED: Cache-first playback — pehli dafa download, dobara instant
   Future<void> playAyah(String url, String title, String surahName) async {
     await _player.stop();
+
     mediaItem.add(MediaItem(
       id: url,
       album: surahName,
@@ -1310,7 +1282,16 @@ class QuranAudioHandler extends BaseAudioHandler {
       artist: "Quran Recitation",
       artUri: Uri.parse('asset:///assets/images/quran_cover.png'),
     ));
-    await _player.play(UrlSource(url));
+
+    try {
+      // Cache mein check karo — agar file hai to seedha local se play
+      final file = await DefaultCacheManager().getSingleFile(url);
+      await _player.play(DeviceFileSource(file.path)); // ✅ local = instant
+    } catch (e) {
+      // Cache fail ho to direct URL fallback
+      debugPrint('Cache miss, playing from URL: $e');
+      await _player.play(UrlSource(url));
+    }
   }
 
   @override

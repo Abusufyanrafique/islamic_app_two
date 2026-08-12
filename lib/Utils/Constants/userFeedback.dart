@@ -7,35 +7,199 @@ import 'SizeConfig.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 
-void showErrorToast(String message) {
-  Fluttertoast.showToast(
-    msg: message,
-    toastLength: Toast.LENGTH_LONG,
-    gravity: ToastGravity.BOTTOM,
-    backgroundColor: AppColors.errorColor,
-    textColor: Colors.white,
+// ─── Toast Helper ──────────────────────────────────────────────────
+OverlayEntry? _currentToastEntry;
+
+void _showAppToast(BuildContext context, String message, _ToastType type) {
+  _currentToastEntry?.remove();
+
+  late OverlayEntry entry;
+  entry = OverlayEntry(
+    builder: (_) => Positioned(
+      bottom: 40,
+      left: 0,
+      right: 0,
+      child: Material(
+        color: Colors.transparent,
+        child: _AppToast(message: message, type: type),
+      ),
+    ),
   );
+
+  _currentToastEntry = entry;
+  Overlay.of(context).insert(entry);
+
+  Future.delayed(const Duration(milliseconds: 3800), () {
+    entry.remove();
+    _currentToastEntry = null;
+  });
 }
 
-void showSuccessToast(String message) {
-  Fluttertoast.showToast(
-    msg: message,
-    toastLength: Toast.LENGTH_LONG,
-    gravity: ToastGravity.BOTTOM,
-    backgroundColor: AppColors.successColor,
-    textColor: Colors.white,
-  );
+enum _ToastType { success, error, info }
+
+class _AppToast extends StatefulWidget {
+  final String message;
+  final _ToastType type;
+  const _AppToast({required this.message, required this.type});
+
+  @override
+  State<_AppToast> createState() => _AppToastState();
 }
 
-void showInfoToast(String message) {
-  Fluttertoast.showToast(
-    msg: message,
-    toastLength: Toast.LENGTH_LONG,
-    gravity: ToastGravity.BOTTOM,
-    backgroundColor: AppColors.darkBlue,
-    textColor: Colors.white,
-  );
+class _AppToastState extends State<_AppToast>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _fade;
+  late Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 380));
+    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
+    _slide = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOut));
+    _ctrl.forward();
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) _ctrl.reverse();
+    });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cfg = _toastConfig(widget.type);
+    return SlideTransition(
+      position: _slide,
+      child: FadeTransition(
+        opacity: _fade,
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+                color: cfg.accentColor.withOpacity(0.35), width: 1.2),
+            boxShadow: [
+              BoxShadow(
+                color: cfg.accentColor.withOpacity(0.12),
+                blurRadius: 18,
+                offset: const Offset(0, 6),
+              ),
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              // Icon
+              Container(
+                height: 40,
+                width: 40,
+                decoration: BoxDecoration(
+                  color: cfg.accentColor.withOpacity(0.10),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(cfg.icon, color: cfg.accentColor, size: 20),
+              ),
+              const SizedBox(width: 12),
+              // Text
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      cfg.label,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: cfg.accentColor,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      widget.message,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xff4A4A4A),
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Right bar
+              Container(
+                height: 34,
+                width: 3.5,
+                decoration: BoxDecoration(
+                  color: cfg.accentColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  _ToastConfig _toastConfig(_ToastType type) {
+    switch (type) {
+      case _ToastType.success:
+        return _ToastConfig(
+          icon: Icons.check_circle_rounded,
+          accentColor: const Color(0xff5BC0BE),
+          label: 'Success',
+        );
+      case _ToastType.error:
+        return _ToastConfig(
+          icon: Icons.cancel_rounded,
+          accentColor: const Color(0xffE57373),
+          label: 'Error',
+        );
+      case _ToastType.info:
+        return _ToastConfig(
+          icon: Icons.info_rounded,
+          accentColor: const Color(0xff4FC3F7),
+          label: 'Info',
+        );
+    }
+  }
 }
+
+class _ToastConfig {
+  final IconData icon;
+  final Color accentColor;
+  final String label;
+  _ToastConfig(
+      {required this.icon, required this.accentColor, required this.label});
+}
+
+// ─── Public Functions (same naam, sirf context add hua) ────────────
+void showErrorToast(BuildContext context, String message) =>
+    _showAppToast(context, message, _ToastType.error);
+
+void showSuccessToast(BuildContext context, String message) =>
+    _showAppToast(context, message, _ToastType.success);
+
+void showInfoToast(BuildContext context, String message) =>
+    _showAppToast(context, message, _ToastType.info);
+
+
+// ─── Baaki sab bilkul same ────────────────────────────────────────
 
 OverlayEntry buildLoadingOverlay() {
   return OverlayEntry(
@@ -52,7 +216,7 @@ OverlayEntry buildLoadingOverlay() {
           child: Center(
             child: CircularProgressIndicator(
               color: AppColors.primaryColor,
-              ),
+            ),
           ),
         ),
       ),
@@ -66,53 +230,28 @@ Widget loadingIndicator() {
   );
 }
 
-// --- UI Components ---
-
 Widget bottomButton(
-  VoidCallback ontap, 
-  String icon, 
+  VoidCallback ontap,
+  String icon,
   String title,
-  ) {
+) {
   return GestureDetector(
     onTap: ontap,
     behavior: HitTestBehavior.opaque,
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Agar aap getHeight/getWidth use kar rahe hain to wahi rehne dein
         SvgPicture.asset(icon, height: 20, width: 20),
         const SizedBox(width: 8),
         Text(
           title,
-          style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 16, color: Colors.black),
+          style: const TextStyle(
+              fontWeight: FontWeight.w400, fontSize: 16, color: Colors.black),
         )
       ],
     ),
   );
 }
-
-// --- Sharing Logic ---
-
-// // 1. General Share (System Tray) - Image/Video dono ke liye
-// Future<void> shareStatus(String path) async {
-//   if (path.isNotEmpty) {
-//     await Share.shareXFiles([XFile(path)]);
-//   }
-// }
-// Future<void> saveToHive(String path, String type) async {
-//   var box = Hive.box<SavedItem>('saved_items');
-//
-//   // Check karein ke kahin ye file pehle hi save to nahi?
-//   bool exists = box.values.any((item) => item.path == path);
-//
-//   if (!exists) {
-//     await box.add(SavedItem(
-//       path: path,
-//       type: type,
-//       dateTime: DateTime.now(),
-//     ));
-//   }
-// }
 
 Widget tabbutton(String title) {
   return Container(
@@ -121,64 +260,14 @@ Widget tabbutton(String title) {
     decoration: BoxDecoration(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(100),
-        border: Border.all(color: Colors.white,width: 1)
-    ),
+        border: Border.all(color: Colors.white, width: 1)),
     alignment: Alignment.center,
-    child: Text(title,style: AppColors().customTextStyleBold16(),),
+    child: Text(
+      title,
+      style: AppColors().customTextStyleBold16(),
+    ),
   );
 }
-
-
-
-
-
-//
-// Future<void> openWhatsapp() async {
-//   var num = "+923116326930";
-//
-//   final Uri androidUrl = Uri.parse("whatsapp://send?phone=$num&text=hello");
-//   final Uri iosUrl = Uri.parse("https://wa.me/$num?text=${Uri.encodeComponent("hello")}");
-//
-//   if (Platform.isIOS) {
-//     if (await canLaunchUrl(iosUrl)) {
-//       await launchUrl(iosUrl);
-//     } else {
-//       print("WhatsApp not installed");
-//     }
-//   } else {
-//     if (await canLaunchUrl(androidUrl)) {
-//       await launchUrl(androidUrl);
-//     } else {
-//       print("WhatsApp not installed");
-//     }
-//   }
-// }
-//
-// void showAppSnackBar({
-//   required BuildContext context,
-//   required String title,
-//   required String message,
-//   required ContentType contentType,
-//
-// })
-// {
-//   final snackBar = SnackBar(
-//     elevation: 0,
-//     behavior: SnackBarBehavior.floating,
-//     backgroundColor: Colors.transparent,
-//     content: AwesomeSnackbarContent(
-//       title: title,
-//       message: message,
-//       contentType: contentType,
-//     ),
-//   );
-//
-//   ScaffoldMessenger.of(context)
-//     ..hideCurrentSnackBar()
-//     ..showSnackBar(snackBar);
-// }
-//
-
 
 final spinkit = SpinKitSpinningLines(
   color: AppColors.primaryColor,

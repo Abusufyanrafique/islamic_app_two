@@ -341,7 +341,10 @@ class _AllDuaCardState extends State<AllDuaCard> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
-                  BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 6),
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.2),
+                     blurRadius: 6,
+                     ),
                 ],
               ),
               child: Column(
@@ -654,8 +657,15 @@ class DuaCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
+        borderRadius: BorderRadius.circular(10),
+         boxShadow: [
+      BoxShadow(
+        color: Colors.black.withOpacity(0.25),
+        offset: const Offset(0, 1),
+        blurRadius: 4,
+        spreadRadius: 0,
+      ),
+    ],
       ),
       padding:  EdgeInsets.all(16),
       child: Column(

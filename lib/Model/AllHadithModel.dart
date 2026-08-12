@@ -5,23 +5,29 @@ class AllHadithBookModel {
 
   AllHadithBookModel({this.status, this.message, this.books});
 
+  // UmmahAPI response:
+  // { "success": true, "data": { "collections": [ {...}, ... ] } }
   AllHadithBookModel.fromJson(Map<String, dynamic> json) {
-    status = json['status'];
-    message = json['message'];
-    if (json['books'] != null) {
+    status = (json['success'] == true) ? 200 : 0;
+    message = json['service']?.toString();
+    final data = json['data'];
+    if (data != null && data['collections'] != null) {
       books = <Books>[];
-      json['books'].forEach((v) {
-        books!.add(new Books.fromJson(v));
+      int i = 1;
+      data['collections'].forEach((v) {
+        final b = Books.fromJson(v);
+        b.id = i++;
+        books!.add(b);
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['status'] = this.status;
-    data['message'] = this.message;
-    if (this.books != null) {
-      data['books'] = this.books!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = {};
+    data['status'] = status;
+    data['message'] = message;
+    if (books != null) {
+      data['books'] = books!.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -33,41 +39,43 @@ class Books {
   String? writerName;
   String? aboutWriter;
   String? writerDeath;
-  String? bookSlug;
-  String? hadithsCount;
+  String? bookSlug;      // = key (e.g. "bukhari")
+  String? hadithsCount;  // = total_hadiths
   String? chaptersCount;
 
-  Books(
-      {this.id,
-        this.bookName,
-        this.writerName,
-        this.aboutWriter,
-        this.writerDeath,
-        this.bookSlug,
-        this.hadithsCount,
-        this.chaptersCount});
+  Books({
+    this.id,
+    this.bookName,
+    this.writerName,
+    this.aboutWriter,
+    this.writerDeath,
+    this.bookSlug,
+    this.hadithsCount,
+    this.chaptersCount,
+  });
 
+  // UmmahAPI: { "key": "bukhari", "name": "Sahih al-Bukhari",
+  //             "author": "Imam Bukhari", "total_hadiths": 7580 }
   Books.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    bookName = json['bookName']?.toString();
-  writerName = json['writerName']?.toString();
-  aboutWriter = json['aboutWriter']?.toString();
-  writerDeath = json['writerDeath']?.toString();
-  bookSlug = json['bookSlug']?.toString();
-  hadithsCount = json['hadiths_count']?.toString();
-  chaptersCount = json['chapters_count']?.toString();
+    bookSlug     = json['key']?.toString();
+    bookName     = json['name']?.toString();
+    writerName   = json['author']?.toString();
+    hadithsCount = json['total_hadiths']?.toString();
+    aboutWriter  = json['arabic_name']?.toString();
+    writerDeath  = json['reliability']?.toString();
+    chaptersCount = null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['bookName'] = this.bookName;
-    data['writerName'] = this.writerName;
-    data['aboutWriter'] = this.aboutWriter;
-    data['writerDeath'] = this.writerDeath;
-    data['bookSlug'] = this.bookSlug;
-    data['hadiths_count'] = this.hadithsCount;
-    data['chapters_count'] = this.chaptersCount;
-    return data;
+    return {
+      'id': id,
+      'bookName': bookName,
+      'writerName': writerName,
+      'aboutWriter': aboutWriter,
+      'writerDeath': writerDeath,
+      'bookSlug': bookSlug,
+      'hadiths_count': hadithsCount,
+      'chapters_count': chaptersCount,
+    };
   }
 }

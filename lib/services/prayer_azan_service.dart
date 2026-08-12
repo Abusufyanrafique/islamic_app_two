@@ -111,7 +111,7 @@ class PrayerAzanService {
 
     final now = DateTime.now();
     var prayerTime = DateTime(now.year, now.month, now.day, hour, minute);
-
+    
     if (prayerTime.isBefore(now)) {
       prayerTime = prayerTime.add(const Duration(days: 1));
     }
@@ -120,7 +120,11 @@ class PrayerAzanService {
       id: id,
       title: "$prayerName Prayer Time 🕌",
       body: "It's time for $prayerName",
-      scheduledDate: tz.TZDateTime.from(prayerTime, tz.local),
+      scheduledDate: tz.TZDateTime.from(
+        prayerTime, 
+        tz.local,
+        
+        ),
       notificationDetails: _notificationDetails,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       matchDateTimeComponents: DateTimeComponents.time,
@@ -128,30 +132,47 @@ class PrayerAzanService {
 
     debugPrint("✅ Azan scheduled: $prayerName at $prayerTime");
   }
+// Future<void> testNotification() async {
+//   final now = tz.TZDateTime.now(tz.local);
+//   final testTime = now.add(const Duration(seconds: 10));
 
+//   debugPrint("🧪 NOW: $now");
+//   debugPrint("🧪 TEST TIME: $testTime");
+
+//   await _plugin.zonedSchedule(
+//     id: 999,
+//     title: "Test Azan 🕌",
+//     body: "10 seconds test notification",
+//     scheduledDate: testTime,
+//     notificationDetails: _notificationDetails,
+//     androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+//   );
+
+//   debugPrint("✅ TEST notification scheduled");
+// }
   // ── TEST — 5 seconds mein fire karo (one-time) ────────────────
-  Future<void> testAzan(String prayerName) async {
-    final id = prayerNotificationIds[prayerName];
-    if (id == null) {
-      debugPrint("❌ Unknown prayer: $prayerName");
-      return;
-    }
+  // Future<void> testAzan(String prayerName) async {
+  //   final id = prayerNotificationIds[prayerName];
+  //   if (id == null) {
+  //     debugPrint("❌ Unknown prayer: $prayerName");
+  //     return;
+  //   }
 
-    final testTime =
-        tz.TZDateTime.now(tz.local).add(const Duration(seconds: 10));
+  //   final testTime =
+  //       tz.TZDateTime.now(tz.local).add(const Duration(seconds: 10));
 
-    await _plugin.zonedSchedule(
-      id: id,
-      title: "$prayerName Prayer Time 🕌 (Test)",
-      body: "Test: It's time for $prayerName",
-      scheduledDate: testTime,
-      notificationDetails: _notificationDetails,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      // matchDateTimeComponents nahi — one-time fire
-    );
+  //   await _plugin.zonedSchedule(
+  //     id: id,
+  //     title: "$prayerName Prayer Time 🕌 (Test)",
+  //     body: "Test: It's time for $prayerName",
+  //     scheduledDate: testTime,
+  //     notificationDetails: _notificationDetails,
+  //     androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+  //     // matchDateTimeComponents nahi — one-time fire
+  //   );
 
-    debugPrint("✅ TEST azan scheduled: $prayerName at $testTime");
-  }
+  //   debugPrint("✅ TEST azan scheduled: $prayerName at $testTime");
+  // }
 
   // ── Switch OFF — azan cancel karo ────────────────────────────
   Future<void> cancelAzan(String prayerName) async {

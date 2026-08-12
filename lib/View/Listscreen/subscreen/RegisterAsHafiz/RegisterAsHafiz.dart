@@ -423,7 +423,7 @@ class ImamRegistration extends StatelessWidget {
                       onPressed: state.isValid && !state.isLoading
                           ? () async {
                         cubit.submit();
-                        showSuccessToast("Registerd Successfully");
+                        showSuccessToast(context,"Registerd Successfully");
 
                         Navigator.pop(context);
                       }
