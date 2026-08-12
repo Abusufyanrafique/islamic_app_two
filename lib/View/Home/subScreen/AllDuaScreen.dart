@@ -29,7 +29,7 @@ class DuaModel {
       arabic: json['arabic'] ?? "",
       urdu: json['urdu'] ?? "",
       english: json['english'] ?? "",
-      reference: json['reference'] ?? "", 
+      reference: json['reference'] ?? "",
     );
   }
 }
@@ -182,15 +182,18 @@ final List<Map<String, dynamic>> duasJson = [
 
 // --- Events ---
 abstract class AllDuaEvent {}
+
 class ChangeTabEvent extends AllDuaEvent {
   final int index;
   ChangeTabEvent(this.index);
 }
+
 // --- State ---
 class AllDuaState {
   final int selectedIndex;
   AllDuaState({this.selectedIndex = 0});
 }
+
 // --- BLoC ---
 class AllDuaBloc extends Bloc<AllDuaEvent, AllDuaState> {
   AllDuaBloc() : super(AllDuaState()) {
@@ -199,44 +202,43 @@ class AllDuaBloc extends Bloc<AllDuaEvent, AllDuaState> {
     });
   }
 }
+
 class AllDuaScreen extends StatelessWidget {
-  const  AllDuaScreen({super.key});
+  const AllDuaScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         foregroundColor: Colors.black,
         centerTitle: true,
-        title:  Text(
+        title: Text(
           "All Dua",
-          style:AppColors().customTextStyleBold16(
-            color: Colors.black,
-            )
+          style: AppColors().customTextStyleBold16(color: Colors.black),
         ),
-
-         bottom: PreferredSize(
-    preferredSize: const Size.fromHeight(0.12),
-    child: Container(
-      color: const Color(0xFF6B7678),
-      height: 0.12,
-    ),
-  ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(0.12),
+          child: Container(
+            color: const Color(0xFF6B7678),
+            height: 0.12,
+          ),
+        ),
       ),
       body: Padding(
-        padding:  EdgeInsets.symmetric(
-          horizontal: getWidth(16),
-          ),
+        padding: EdgeInsets.symmetric(horizontal: getWidth(16)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-             SizedBox(height: getHeight(10)),
+            SizedBox(height: getHeight(10)),
             const Text("Quick Access"),
-             SizedBox(height: getHeight(10)),
+            SizedBox(height: getHeight(10)),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                 QuickAccessContainer(
+                QuickAccessContainer(
                   heading: "Dua of the Day",
                   subheading: "Daily dua quick access",
                   isSelected: true,
@@ -246,16 +248,14 @@ class AllDuaScreen extends StatelessWidget {
                     context,
                     MaterialPageRoute(builder: (_) => const BookmarksScreen()),
                   ),
-                  child:  QuickAccessContainer(
+                  child: QuickAccessContainer(
                     heading: "Bookmarks",
                     subheading: "Saved Duas",
                   ),
                 ),
               ],
             ),
-             SizedBox(height: getHeight(20)),
-
-            
+            SizedBox(height: getHeight(20)),
             BlocBuilder<AllDuaBloc, AllDuaState>(
               builder: (context, state) {
                 return allduaContainer(
@@ -268,24 +268,23 @@ class AllDuaScreen extends StatelessWidget {
                 );
               },
             ),
-
-             SizedBox(height: getHeight(16)),
-
+            SizedBox(height: getHeight(16)),
             Expanded(
               child: BlocBuilder<AllDuaBloc, AllDuaState>(
                 builder: (context, state) {
                   return state.selectedIndex == 0
                       ? ListView.builder(
-                    itemCount: namesList.length,
-                    itemBuilder: (context, index) {
-                      final dua = namesList[index];
-                      return Padding(
-                        padding:  EdgeInsets.symmetric(
-                          vertical: getHeight(8)),
-                        child: AllDuaCard(dua: dua),
-                      );
-                    },
-                  )
+                          itemCount: namesList.length,
+                          itemBuilder: (context, index) {
+                            final dua = namesList[index];
+                            return Padding(
+                              padding: EdgeInsets.symmetric(
+                                vertical: getHeight(8),
+                              ),
+                              child: AllDuaCard(dua: dua),
+                            );
+                          },
+                        )
                       : const SubjectsScreen();
                 },
               ),
@@ -296,6 +295,7 @@ class AllDuaScreen extends StatelessWidget {
     );
   }
 }
+
 class AllDuaCard extends StatefulWidget {
   final DuaModel? dua;
   final bool showLeftLine;
@@ -312,11 +312,69 @@ class AllDuaCard extends StatefulWidget {
 
 class _AllDuaCardState extends State<AllDuaCard> {
   bool isLoading = false;
+  late DuaModel selectedDua;
+
+  // ✅ Random ki jagah sequential index — one by one aage badhega
+  late int _currentIndex;
+
+  String? _previousSpeakingId;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.dua != null) {
+      // ✅ Fixed dua pass hui hai (jaise AllDuaScreen se) — us par hi lock rahega
+      _currentIndex = namesList.indexOf(widget.dua!);
+      if (_currentIndex == -1) _currentIndex = 0;
+    } else {
+      // ✅ Random-mode (home screen) — sequence 0 se shuru
+      _currentIndex = 0;
+    }
+
+    selectedDua = namesList[_currentIndex];
+    AudioService.instance.currentlySpeaking.addListener(_handleSpeakingChange);
+  }
+
+  @override
+  void didUpdateWidget(covariant AllDuaCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.dua != null && widget.dua != oldWidget.dua) {
+      setState(() {
+        _currentIndex = namesList.indexOf(widget.dua!);
+        if (_currentIndex == -1) _currentIndex = 0;
+        selectedDua = namesList[_currentIndex];
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    AudioService.instance.currentlySpeaking.removeListener(_handleSpeakingChange);
+    super.dispose();
+  }
+
+  void _handleSpeakingChange() {
+    if (!mounted) return;
+
+    final speakingId = AudioService.instance.currentlySpeaking.value;
+    final wasSpeakingThisDua = _previousSpeakingId == selectedDua.arabic;
+    final audioJustStopped = speakingId == null;
+    final isRandomMode = widget.dua == null;
+
+    if (wasSpeakingThisDua && audioJustStopped && isRandomMode) {
+      setState(() {
+        // ✅ Sequential: agla index, list khatam hote hi wapis 0 se
+        _currentIndex = (_currentIndex + 1) % namesList.length;
+        selectedDua = namesList[_currentIndex];
+      });
+    }
+
+    _previousSpeakingId = speakingId;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final selectedDua = widget.dua ?? namesList[Random().nextInt(namesList.length)];
-
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -343,8 +401,8 @@ class _AllDuaCardState extends State<AllDuaCard> {
                 boxShadow: [
                   BoxShadow(
                     color: Colors.grey.withOpacity(0.2),
-                     blurRadius: 6,
-                     ),
+                    blurRadius: 6,
+                  ),
                 ],
               ),
               child: Column(
@@ -359,6 +417,7 @@ class _AllDuaCardState extends State<AllDuaCard> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
+                        // ── Share button ──
                         GestureDetector(
                           onTap: () {
                             final shareText = '''
@@ -372,33 +431,34 @@ class _AllDuaCardState extends State<AllDuaCard> {
                         ),
                         SizedBox(width: getWidth(10)),
 
+                        // ── Play/Stop button ──
                         ValueListenableBuilder<String?>(
-                          valueListenable: AudioService.instance.currentlySpeaking,
+                          valueListenable:
+                              AudioService.instance.currentlySpeaking,
                           builder: (context, speakingId, _) {
-                            final isThisPlaying = speakingId == selectedDua.arabic;
+                            final isThisPlaying =
+                                speakingId == selectedDua.arabic;
                             return GestureDetector(
                               onTap: isLoading
                                   ? null
                                   : () async {
                                       setState(() => isLoading = true);
                                       try {
-                                        await AudioService.instance.speakOrToggle(
+                                        await AudioService.instance
+                                            .speakOrToggle(
                                           selectedDua.arabic,
                                           selectedDua.arabic,
                                         );
                                       } finally {
-                                        if (mounted) setState(() => isLoading = false);
+                                        if (mounted) {
+                                          setState(() => isLoading = false);
+                                        }
                                       }
                                     },
                               child: isLoading
-                                  ? SizedBox(
-                                      // width: 28,
-                                      // height: 28,
-                                      child:
-                                       SpinKitFadingCircle(
+                                  ? SpinKitFadingCircle(
                                       color: AppColors.labbaik,
                                       size: 30.0,
-                                     ),
                                     )
                                   : Icon(
                                       isThisPlaying
@@ -407,6 +467,47 @@ class _AllDuaCardState extends State<AllDuaCard> {
                                       color: AppColors.primaryColor,
                                       size: 28,
                                     ),
+                            );
+                          },
+                        ),
+
+                        SizedBox(width: getWidth(6)),
+
+                        // ── Bookmark icon — working toggle ──
+                        ValueListenableBuilder<Set<String>>(
+                          valueListenable:
+                              BookmarkManager.instance.bookmarkedArabic,
+                          builder: (context, bookmarks, _) {
+                            final isSaved =
+                                bookmarks.contains(selectedDua.arabic);
+                            return GestureDetector(
+                              onTap: () {
+                                BookmarkManager.instance
+                                    .toggle(selectedDua.arabic);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      isSaved
+                                          ? 'Bookmark hata diya gaya'
+                                          : 'Bookmark ho gaya! ✅',
+                                    ),
+                                    duration:
+                                        const Duration(milliseconds: 800),
+                                    backgroundColor: isSaved
+                                        ? Colors.grey
+                                        : const Color(0xff5BC0BE),
+                                  ),
+                                );
+                              },
+                              child: Icon(
+                                isSaved
+                                    ? Icons.bookmark
+                                    : Icons.bookmark_border,
+                                size: 25,
+                                color: isSaved
+                                    ? const Color(0xff5BC0BE)
+                                    : AppColors.primaryColor,
+                              ),
                             );
                           },
                         ),
@@ -425,7 +526,7 @@ class _AllDuaCardState extends State<AllDuaCard> {
                             width: getWidth(40),
                           ),
                           Text(
-                            (namesList.indexOf(selectedDua) + 1).toString(),
+                            (_currentIndex + 1).toString(),
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
                               fontSize: getFont(12),
@@ -448,7 +549,10 @@ class _AllDuaCardState extends State<AllDuaCard> {
                             SizedBox(height: getHeight(4)),
                             Text(
                               selectedDua.urdu,
-                              style: TextStyle(fontSize: getFont(10), color: Colors.grey),
+                              style: TextStyle(
+                                fontSize: getFont(10),
+                                color: Colors.grey,
+                              ),
                             ),
                           ],
                         ),
@@ -488,13 +592,9 @@ class QuickAccessContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding:  EdgeInsets.symmetric(
-        horizontal: getWidth(10),
-       vertical: getHeight(5)),
+      padding: EdgeInsets.symmetric(horizontal: getWidth(10), vertical: getHeight(5)),
       height: getHeight(45),
       width: getWidth(180),
-
-
       decoration: BoxDecoration(
         color: isSelected ? primaryColor : Colors.white,
         borderRadius: BorderRadius.circular(6),
@@ -512,27 +612,27 @@ class QuickAccessContainer extends StatelessWidget {
         children: [
           Text(
             heading,
-            style:AppColors().customTextStyle12(
+            style: AppColors().customTextStyle12(
               color: isSelected ? Colors.white : Colors.black,
-               )
+            ),
           ),
-          SizedBox(height: getHeight(4),),
+          SizedBox(height: getHeight(4)),
           Text(
             subheading,
-             style:AppColors().customTextStyle12(
-              color: isSelected ? Colors.white : Colors.black,
-               ).copyWith(
-                fontSize: getFont(10)
-               )
+            style: AppColors()
+                .customTextStyle12(
+                  color: isSelected ? Colors.white : Colors.black,
+                )
+                .copyWith(fontSize: getFont(10)),
           ),
         ],
       ),
     );
   }
 }
+
 class allduaContainer extends StatelessWidget {
   final String heading;
-
   final String subheading;
   final int selectedIndex;
   final Function(int) onTap;
@@ -558,52 +658,35 @@ class allduaContainer extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // All Dua Tab
           Expanded(
             child: GestureDetector(
               onTap: () => onTap(0),
               child: AnimatedContainer(
                 duration: Duration(milliseconds: 250),
                 decoration: BoxDecoration(
-                  // color: selectedIndex == 0
-                  //     ? Colors.white          // ← selected = white background
-                  //     : Colors.transparent,   // ← unselected = transparent
                   borderRadius: BorderRadius.circular(50),
                   border: selectedIndex == 0
-                      ? Border.all(
-                          color: Colors.white,
-                          width: 1.5,
-                        ) // ← selected border
+                      ? Border.all(color: Colors.white, width: 1.5)
                       : null,
                 ),
                 alignment: Alignment.center,
                 child: Text(
                   heading,
                   style: AppColors().customTextStyle12(
-                    fontWeight: selectedIndex == 0
-                        ? FontWeight
-                              .w700 // ← selected bold
-                        : FontWeight.w500,
+                    fontWeight:
+                        selectedIndex == 0 ? FontWeight.w700 : FontWeight.w500,
                     color: Colors.white,
-                    // color: selectedIndex == 0
-                    //     ? AppColors.black   // ← selected dark text
-                    //     : Colors.white,    // ← unselected white text
                   ),
                 ),
               ),
             ),
           ),
-
-          // Subject Wise Tab
           Expanded(
             child: GestureDetector(
               onTap: () => onTap(1),
               child: AnimatedContainer(
                 duration: Duration(milliseconds: 250),
                 decoration: BoxDecoration(
-                  // color: selectedIndex == 1
-                  // ? Colors.white
-                  // : Colors.transparent,
                   borderRadius: BorderRadius.circular(50),
                   border: selectedIndex == 1
                       ? Border.all(color: Colors.white, width: 1)
@@ -613,13 +696,9 @@ class allduaContainer extends StatelessWidget {
                 child: Text(
                   subheading,
                   style: AppColors().customTextStyle12(
-                    fontWeight: selectedIndex == 1
-                        ? FontWeight.w700
-                        : FontWeight.w500,
+                    fontWeight:
+                        selectedIndex == 1 ? FontWeight.w700 : FontWeight.w500,
                     color: Colors.white,
-                    // color: selectedIndex == 1
-                    //     ? AppColors.black
-                    //     : Colors.white,
                   ),
                 ),
               ),
@@ -630,6 +709,7 @@ class allduaContainer extends StatelessWidget {
     );
   }
 }
+
 class Dua {
   final String label;
   final Color labelBg;
@@ -658,24 +738,22 @@ class DuaCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-         boxShadow: [
-      BoxShadow(
-        color: Colors.black.withOpacity(0.25),
-        offset: const Offset(0, 1),
-        blurRadius: 4,
-        spreadRadius: 0,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            offset: const Offset(0, 1),
+            blurRadius: 4,
+            spreadRadius: 0,
+          ),
+        ],
       ),
-    ],
-      ),
-      padding:  EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Label badge
           Container(
-            padding:  EdgeInsets.symmetric(
-              horizontal: getWidth(10), 
-              vertical: getHeight(4)),
+            padding:
+                EdgeInsets.symmetric(horizontal: getWidth(10), vertical: getHeight(4)),
             decoration: BoxDecoration(
               color: dua.labelBg,
               borderRadius: BorderRadius.circular(6),
@@ -683,20 +761,20 @@ class DuaCard extends StatelessWidget {
             child: Text(
               dua.label,
               style: AppColors().customTextStyle14().copyWith(
-                fontWeight: FontWeight.w600,
-                fontSize: getFont(11),
-                color: dua.labelColor,)
+                    fontWeight: FontWeight.w600,
+                    fontSize: getFont(11),
+                    color: dua.labelColor,
+                  ),
             ),
           ),
-           SizedBox(height: getHeight(12)),
-          // Arabic text
+          SizedBox(height: getHeight(12)),
           Align(
             alignment: Alignment.centerRight,
             child: Text(
               dua.arabic,
               textAlign: TextAlign.right,
               textDirection: TextDirection.rtl,
-              style:  TextStyle(
+              style: TextStyle(
                 fontSize: getFont(22),
                 height: getHeight(2.2),
                 color: Color(0xFF1A1A1A),
@@ -704,37 +782,35 @@ class DuaCard extends StatelessWidget {
               ),
             ),
           ),
-           SizedBox(height: getHeight(8)),
-          // Urdu text
+          SizedBox(height: getHeight(8)),
           Align(
             alignment: Alignment.centerRight,
             child: Text(
               dua.urdu,
               textAlign: TextAlign.right,
               textDirection: TextDirection.rtl,
-              style:  TextStyle(
-                fontSize:getFont(15) ,
+              style: TextStyle(
+                fontSize: getFont(15),
                 height: 1.9,
                 color: Color(0xFF444444),
               ),
             ),
           ),
-           Divider(height: getHeight(20),
-            color: Color(0xFFEEEEEE)),
-          // Roman Urdu translation
+          Divider(height: getHeight(20), color: Color(0xFFEEEEEE)),
           Text(
             dua.translation,
-            style:  AppColors().customTextStyle14().copyWith(
-               fontSize: getFont(13),
-              height: getHeight(1.6),
-              color: Color(0xFF666666),
-            ),
+            style: AppColors().customTextStyle14().copyWith(
+                  fontSize: getFont(13),
+                  height: getHeight(1.6),
+                  color: Color(0xFF666666),
+                ),
           ),
         ],
       ),
     );
   }
 }
+
 class BookmarkManager {
   // Singleton
   static final BookmarkManager instance = BookmarkManager._();
@@ -742,7 +818,7 @@ class BookmarkManager {
 
   // Set of bookmarked arabic texts (unique identifier)
   final ValueNotifier<Set<String>> bookmarkedArabic =
-  ValueNotifier<Set<String>>({});
+      ValueNotifier<Set<String>>({});
 
   bool isBookmarked(String arabic) => bookmarkedArabic.value.contains(arabic);
 
@@ -761,6 +837,7 @@ class BookmarkManager {
     return isNowBookmarked;
   }
 }
+
 class DuasCard extends StatelessWidget {
   final Dua dua;
   const DuasCard({super.key, required this.dua});
@@ -771,18 +848,19 @@ class DuasCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
+        border: Border.all(
+          color: const Color(0xFFE0E0E0),
+          ),
       ),
-      padding:  EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Label + Bookmark row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding:  EdgeInsets.symmetric(
+                padding: EdgeInsets.symmetric(
                   horizontal: getWidth(10),
                   vertical: getHeight(4),
                 ),
@@ -799,8 +877,6 @@ class DuasCard extends StatelessWidget {
                   ),
                 ),
               ),
-
-              // ✅ Bookmark icon with toggle
               ValueListenableBuilder<Set<String>>(
                 valueListenable: BookmarkManager.instance.bookmarkedArabic,
                 builder: (context, bookmarks, _) {
@@ -812,13 +888,12 @@ class DuasCard extends StatelessWidget {
                         SnackBar(
                           content: Text(
                             saved
-                                ? 'Bookmark hata diya gaya'
-                                : 'Bookmark ho gaya! ✅',
+                                ? 'Bookmark removed'
+                                : 'Bookmark added! ✅',
                           ),
                           duration: const Duration(milliseconds: 800),
-                          backgroundColor: saved
-                              ? Colors.grey
-                              : const Color(0xff5BC0BE),
+                          backgroundColor:
+                              saved ? Colors.grey : const Color(0xff5BC0BE),
                         ),
                       );
                     },
@@ -834,17 +909,14 @@ class DuasCard extends StatelessWidget {
               ),
             ],
           ),
-
-           SizedBox(height: getHeight(12)),
-
-          // Arabic text
+          SizedBox(height: getHeight(12)),
           Align(
             alignment: Alignment.centerRight,
             child: Text(
               dua.arabic,
               textAlign: TextAlign.right,
               textDirection: TextDirection.rtl,
-              style:  TextStyle(
+              style: TextStyle(
                 fontSize: getFont(22),
                 height: 2.2,
                 color: Color(0xFF1A1A1A),
@@ -852,28 +924,24 @@ class DuasCard extends StatelessWidget {
               ),
             ),
           ),
-           SizedBox(height: getHeight(8)),
-
-          // Urdu text
+          SizedBox(height: getHeight(8)),
           Align(
             alignment: Alignment.centerRight,
             child: Text(
               dua.urdu,
               textAlign: TextAlign.right,
               textDirection: TextDirection.rtl,
-              style:  TextStyle(
-                fontSize:getFont(15),
+              style: TextStyle(
+                fontSize: getFont(15),
                 height: 1.9,
                 color: Color(0xFF444444),
               ),
             ),
           ),
-           Divider(height: getHeight(20), color: Color(0xFFEEEEEE)),
-
-          // Roman Urdu translation
+          Divider(height: getHeight(20), color: Color(0xFFEEEEEE)),
           Text(
             dua.translation,
-            style:  TextStyle(
+            style: TextStyle(
               fontSize: getFont(13),
               height: 1.6,
               color: Color(0xFF666666),
@@ -884,6 +952,7 @@ class DuasCard extends StatelessWidget {
     );
   }
 }
+
 class BookmarksScreen extends StatelessWidget {
   const BookmarksScreen({super.key});
 
@@ -908,17 +977,25 @@ class BookmarksScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
-        title:  Text(
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        backgroundColor: Colors.white,
+        centerTitle: true,
+         bottom: PreferredSize(
+    preferredSize: const Size.fromHeight(0.12),
+    child: Container(
+      color: const Color(0xFF6B7678),
+      height: 0.12,
+    ),
+  ),
+        title: Text(
           '🔖 Bookmarks',
-          style: TextStyle(
-            fontSize: getFont(18),
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF1A1A1A),
-          ),
+         style:AppColors().customTextStyleBold16().copyWith(
+            fontSize: getFont(16),
+          )
         ),
       ),
       body: ValueListenableBuilder<Set<String>>(
@@ -927,7 +1004,6 @@ class BookmarksScreen extends StatelessWidget {
           final subjectDuas = _getBookmarkedDuas(bookmarkedArabic);
           final modelDuas = _getBookmarkedDuaModels(bookmarkedArabic);
 
-          // Dono lists empty hain
           if (subjectDuas.isEmpty && modelDuas.isEmpty) {
             return Center(
               child: Column(
@@ -938,8 +1014,8 @@ class BookmarksScreen extends StatelessWidget {
                     size: 72,
                     color: Colors.grey.shade300,
                   ),
-                   SizedBox(height: getHeight(16)),
-                   Text(
+                  SizedBox(height: getHeight(16)),
+                  Text(
                     'No bookmarks found.',
                     style: TextStyle(
                       fontSize: getFont(16),
@@ -947,8 +1023,8 @@ class BookmarksScreen extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                   SizedBox(height: getHeight(8)),
-                   Text(
+                  SizedBox(height: getHeight(8)),
+                  Text(
                     'Tap the bookmark icon on any Dua.',
                     style: TextStyle(fontSize: getFont(13), color: Colors.grey),
                   ),
@@ -960,9 +1036,8 @@ class BookmarksScreen extends StatelessWidget {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              // ── Subject-wise Dua Cards ─────────────────────────────────
               if (subjectDuas.isNotEmpty) ...[
-                 Text(
+                Text(
                   'Subject Wise Duas',
                   style: TextStyle(
                     fontSize: getFont(14),
@@ -970,19 +1045,17 @@ class BookmarksScreen extends StatelessWidget {
                     color: Color(0xFF888888),
                   ),
                 ),
-                 SizedBox(height: getHeight(10)),
+                SizedBox(height: getHeight(10)),
                 ...subjectDuas.map(
                   (dua) => Padding(
-                    padding:  EdgeInsets.only(bottom: getHeight(12)),
+                    padding: EdgeInsets.only(bottom: getHeight(12)),
                     child: DuaCard(dua: dua),
                   ),
                 ),
               ],
-
-              // ── All Dua (namesList) Cards ──────────────────────────────
               if (modelDuas.isNotEmpty) ...[
-                 SizedBox(height: getHeight(8)),
-                 Text(
+                SizedBox(height: getHeight(8)),
+                Text(
                   'All Duas',
                   style: TextStyle(
                     fontSize: getFont(14),
@@ -990,16 +1063,16 @@ class BookmarksScreen extends StatelessWidget {
                     color: Color(0xFF888888),
                   ),
                 ),
-                 SizedBox(height: getHeight(10)),
+                SizedBox(height: getHeight(10)),
                 ...modelDuas.asMap().entries.map(
-                  (entry) => AllBookMarkDuaCard(
-                    index: (entry.key + 1).toString(),
-                    arabicName: entry.value.arabic,
-                    englishName: entry.value.english,
-                    urdu: entry.value.urdu,
-                    reference: entry.value.reference,
-                  ),
-                ),
+                      (entry) => AllBookMarkDuaCard(
+                        index: (entry.key + 1).toString(),
+                        arabicName: entry.value.arabic,
+                        englishName: entry.value.english,
+                        urdu: entry.value.urdu,
+                        reference: entry.value.reference,
+                      ),
+                    ),
               ],
             ],
           );
@@ -1008,7 +1081,6 @@ class BookmarksScreen extends StatelessWidget {
     );
   }
 }
-
 class AllBookMarkDuaCard extends StatelessWidget {
   final String index;
   final String arabicName;
@@ -1028,65 +1100,65 @@ class AllBookMarkDuaCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 3,
-      margin:  EdgeInsets.symmetric(
-        horizontal: getWidth(12), 
-        vertical: getHeight(8)),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 1,
+      color: AppColors.white,
+      margin: EdgeInsets.symmetric(
+        horizontal: getWidth(12),
+         vertical: getHeight(8),
+         ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(6),
+        ),
       child: Padding(
-        padding:  EdgeInsets.all(12),
+        padding: EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Index
             Text(
               index,
-              style:  TextStyle(
+              style: TextStyle(
                 fontSize: getFont(14),
                 fontWeight: FontWeight.bold,
-                color: Colors.green,
+                color: AppColors.labbaik,
               ),
             ),
-
-             SizedBox(height: getHeight(8)),
-
-            // Arabic
+            SizedBox(height: getHeight(8)),
             Text(
               arabicName,
               textAlign: TextAlign.right,
-              style:  TextStyle(fontSize: getFont(20),
-               fontWeight: FontWeight.bold),
+              style: AppColors().customTextStyleBold16().copyWith(
+                fontSize: getFont(20),
+               fontWeight: FontWeight.bold)
             ),
-
-             SizedBox(height: getHeight(20)),
-
-            // English
+            SizedBox(height: getHeight(20)),
             Text(
               englishName,
-              style:  TextStyle(fontSize: getFont(16), color: Colors.black87),
+              style:AppColors().customTextStyleBold16().copyWith(
+                 fontSize: getFont(16), 
+                color: Colors.black87,
+              )
             ),
-
-             SizedBox(height: getHeight(8)),
-
-            // Urdu
+            SizedBox(height: getHeight(8)),
             Text(
               urdu,
               textDirection: TextDirection.rtl,
-              style:  TextStyle(fontSize: getFont(16), color: Colors.black54),
+              style:AppColors().customTextStyle14().copyWith(
+                 fontSize: getFont(16), 
+                color: Colors.black54,
+              )
             ),
-
-             SizedBox(height: getHeight(10)),
-
-            // Reference
+            SizedBox(height: getHeight(10)),
             Align(
               alignment: Alignment.bottomRight,
               child: Text(
                 reference,
-                style:  TextStyle(
-                  fontSize: getFont(12),
+                style: AppColors().customTextStyle14(
+
+                ).copyWith(
+                   fontSize: getFont(12),
                   color: Colors.grey,
                   fontStyle: FontStyle.italic,
-                ),
+                )
               ),
             ),
           ],
@@ -1095,4 +1167,3 @@ class AllBookMarkDuaCard extends StatelessWidget {
     );
   }
 }
-

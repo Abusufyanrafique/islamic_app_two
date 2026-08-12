@@ -100,6 +100,9 @@ class TasbihScreen extends StatelessWidget {
       create: (context) => TasbihBloc(tasbihList.length),
       child: Scaffold(
         appBar: AppBar(
+           elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
           title:  Text(
             "Tasbih Counter",
           style:AppColors().customTextStyleBold16().copyWith(
@@ -107,7 +110,13 @@ class TasbihScreen extends StatelessWidget {
           )
            ),
           centerTitle: true,
-          
+           bottom: PreferredSize(
+    preferredSize: const Size.fromHeight(0.12),
+    child: Container(
+      color: const Color(0xFF6B7678),
+      height: 0.12,
+    ),
+  ),
         ),
         body: Padding(
           padding:  EdgeInsets.all(16),

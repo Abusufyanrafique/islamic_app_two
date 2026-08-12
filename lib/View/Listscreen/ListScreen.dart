@@ -31,39 +31,39 @@ class ListScreen extends StatelessWidget {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              CustomContainer(
-                "Profile",
-                Column(
-                  children: [
-                    AllListButton(
-                      "Profile",
-                      "assets/icons/profile.svg",
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  ProfileScreen()
-                          ),
-                        );
-                        print("Fajr tapped!");
-                        // Or navigate to another screen
-                        // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
-                      },
-                    ),
-                    // AllListButton(
-                    //   "My Premium",
-                    //   AllImages.premium,
-                    //   onTap: () {
+              // CustomContainer(
+              //   "Profile",
+              //   Column(
+              //     children: [
+              //       AllListButton(
+              //         "Profile",
+              //         "assets/icons/profile.svg",
+              //         onTap: () {
+              //           Navigator.push(
+              //             context,
+              //             MaterialPageRoute(
+              //                 builder: (context) =>
+              //                     ProfileScreen()
+              //             ),
+              //           );
+              //           print("Fajr tapped!");
+              //           // Or navigate to another screen
+              //           // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
+              //         },
+              //       ),
+              //       // AllListButton(
+              //       //   "My Premium",
+              //       //   AllImages.premium,
+              //       //   onTap: () {
 
-                    //     print("Fajr tapped!");
-                    //     // Or navigate to another screen
-                    //     // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
-                    //   },
-                    // ),
-                  ],
-                ),
-              ),
+              //       //     print("Fajr tapped!");
+              //       //     // Or navigate to another screen
+              //       //     // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
+              //       //   },
+              //       // ),
+              //     ],
+              //   ),
+              // ),
               // CustomContainer(
               //   "Communication Prefrences",
               //   Column(

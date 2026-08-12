@@ -62,6 +62,9 @@ class AllahNamesScreen extends StatelessWidget {
       child: Scaffold(
         // backgroundColor: const Color(0xffF5F5F5),
         appBar: AppBar(
+           elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
           // iconTheme: const IconThemeData(color: Colors.white),
         bottom: PreferredSize(
     preferredSize: const Size.fromHeight(0.12),

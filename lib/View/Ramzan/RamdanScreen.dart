@@ -94,6 +94,9 @@ class RamadanScreen extends StatelessWidget {
                     expandedHeight: 180,
                     pinned: true,
                     centerTitle: true,
+                    elevation: 0,
+                    scrolledUnderElevation: 0,
+                    surfaceTintColor: Colors.transparent,
                     title:  Text(
                       "Ramadan",
                       style: AppColors().customTextStyleBold16()

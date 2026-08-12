@@ -861,7 +861,7 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
     audioHandler.onSkipToNext = _playNextAyah;
     audioHandler.onSkipToPrevious = _playPreviousAyah;
 
-    // ✅ Next ayah background mein pre-fetch — tap karte waqt ready ho
+    //  Next ayah background mein pre-fetch — tap karte waqt ready ho
     _prefetchNextAyah(ayah);
   }
 
@@ -890,6 +890,9 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         centerTitle: true,
         toolbarHeight: getHeight(65),
         title: Column(
@@ -907,7 +910,15 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
               ).copyWith(fontSize: getFont(12)),
             ),
           ],
+          
         ),
+         bottom: PreferredSize(
+    preferredSize: const Size.fromHeight(0.12),
+    child: Container(
+      color: const Color(0xFF6B7678),
+      height: 0.12,
+    ),
+  ),
       ),
       body: _loading
           ? Center(child: spinkit)

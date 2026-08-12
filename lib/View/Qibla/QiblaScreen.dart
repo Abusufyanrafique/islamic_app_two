@@ -58,7 +58,8 @@ class QiblaCubit extends Cubit<QiblaState> {
   DateTime _lastAlignedTime = DateTime(2000);
   bool _currentlyAligned = false;
 
-  static const double _alignDeg = 10.0;
+  // 5° tolerance — tight enough to feel precise
+  static const double _alignDeg = 5.0;
 
   QiblaCubit() : super(QiblaState()) {
     _audioPlayer.setReleaseMode(ReleaseMode.stop);
@@ -144,8 +145,8 @@ class QiblaCubit extends Cubit<QiblaState> {
       final heading = event.heading!;
       final qibla = state.qiblaDirection;
 
-      final angle = (qibla - heading + 360) % 360;
-      final bool isAligned = angle < _alignDeg || angle > (360 - _alignDeg);
+      final double diff = (qibla - heading + 360) % 360;
+      final bool isAligned = diff < _alignDeg || diff > (360 - _alignDeg);
 
       emit(state.copyWith(compassHeading: heading, isAligned: isAligned));
 
@@ -193,7 +194,39 @@ class QiblaScreen extends StatefulWidget {
   State<QiblaScreen> createState() => _QiblaScreenState();
 }
 
-class _QiblaScreenState extends State<QiblaScreen> with RouteAware {
+class _QiblaScreenState extends State<QiblaScreen>
+    with RouteAware, TickerProviderStateMixin {
+  // Glow pulse animation jab Qibla aligned ho
+  late AnimationController _glowController;
+  late Animation<double> _glowAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _glowController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _glowAnimation = Tween<double>(begin: 0.4, end: 1.0).animate(
+      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _glowController.dispose();
+    super.dispose();
+  }
+
+  void _handleAlignmentChange(bool isAligned) {
+    if (isAligned) {
+      _glowController.repeat(reverse: true);
+    } else {
+      _glowController.stop();
+      _glowController.reset();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -204,6 +237,11 @@ class _QiblaScreenState extends State<QiblaScreen> with RouteAware {
             Positioned.fill(child: CustomPaint(painter: _BgPatternPainter())),
             BlocBuilder<QiblaCubit, QiblaState>(
               builder: (context, state) {
+                // Glow animation trigger
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _handleAlignmentChange(state.isAligned);
+                });
+
                 return GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -271,103 +309,150 @@ class _QiblaScreenState extends State<QiblaScreen> with RouteAware {
         (state.qiblaDirection - state.compassHeading + 360) % 360;
 
     return SingleChildScrollView(
-
       child: Column(
         children: [
-          SizedBox(height: getHeight(30)),
+          SizedBox(height: getHeight(20)),
           _buildCompass(
-              state.compassHeading, state.qiblaDirection, state.isAligned),
+            state.compassHeading,
+            state.qiblaDirection,
+            state.isAligned,
+          ),
           SizedBox(height: getHeight(15)),
-          _buildDegreeDisplay(qiblaAngle),
+          _buildDegreeDisplay(qiblaAngle, state.isAligned),
           SizedBox(height: getHeight(10)),
-          _buildInstruction(qiblaAngle),
-          // SizedBox(height: getHeight(24)),
+          _buildInstruction(qiblaAngle, state.isAligned),
+          SizedBox(height: getHeight(10)),
         ],
       ),
     );
   }
 
+  /// COMPASS LOGIC:
+  ///
+  /// RING: -heading se rotate hoti hai
+  ///   → Jab phone North ki taraf ho, N upar ho
+  ///
+  /// NEEDLE (dual mode):
+  ///   [Normal]  → needle fixed rahe screen pe (N upar, S neeche)
+  ///              angle = +heading (ring ke opposite) → net 0
+  ///   [Aligned] → needle Qibla ki taraf snap ho jaye
+  ///              angle = qiblaScreenAngle = (qibla - heading)
+  ///
+  /// QIBLA ICON: hamesha Qibla direction pe
+  ///   angle = (qibla - heading)
   Widget _buildCompass(double heading, double qiblaDir, bool isAligned) {
     final double ringAngle = -heading * math.pi / 180;
-    final double qiblaScreenAngle = (qiblaDir - heading) * math.pi / 180;
 
-    // ✅ Compass radius + Kaaba icon ko bahar rakhne ke liye
-    // Ring outer radius = 140, icon size = 44
-    // Icon center = 140 + 22 = 162 pixels from center
+    // Normal mode: needle fixed (net angle = 0 because ring=-heading, needle=+heading)
+    // Aligned mode: needle points to Qibla direction on screen
+    final double qiblaScreenAngle = (qiblaDir - heading) * math.pi / 180;
+    final double needleAngle = isAligned
+        ? qiblaScreenAngle   // Qibla direction pe snap
+        : heading * math.pi / 180; // Fixed (N-S stable)
+
+    // Qibla icon position on rim
     const double compassRadius = 120.0;
     const double iconSize = 44.0;
     const double iconOffset = compassRadius + iconSize / 2 + 12;
 
-    // Icon ki position calculate karo (top = center - iconOffset)
     final double iconX = iconOffset * math.sin(qiblaScreenAngle);
     final double iconY = -iconOffset * math.cos(qiblaScreenAngle);
 
-    // Total widget size: compass diameter + icon on both sides
     const double totalSize = (compassRadius + iconSize + 8) * 2;
 
-    return SizedBox(
-      width: getWidth(totalSize),
-      height: getHeight(totalSize),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // ── Compass Ring ──
-          Transform.rotate(
-            angle: ringAngle,
-            child: CustomPaint(
-              size: const Size(270, 270),
-              painter: _RingPainter(heading: heading),
-            ),
-          ),
+    return AnimatedBuilder(
+      animation: _glowAnimation,
+      builder: (context, child) {
+        return SizedBox(
+          width: getWidth(totalSize),
+          height: getHeight(totalSize),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // ── Green glow jab aligned ho ──
+              if (isAligned)
+                Container(
+                  width: getWidth(230),
+                  height: getHeight(230),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF2ECC71)
+                            .withOpacity(0.30 * _glowAnimation.value),
+                        blurRadius: 40,
+                        spreadRadius: 15,
+                      ),
+                    ],
+                  ),
+                ),
 
-          // ── White inner circle ──
-          Container(
-            width: getWidth(212),
-            height: getHeight(212),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 16,
-                  spreadRadius: 2,
-                )
-              ],
-            ),
-          ),
+              // ── Compass Ring (rotates with heading) ──
+              Transform.rotate(
+                angle: ringAngle,
+                child: CustomPaint(
+                  size: const Size(270, 270),
+                  painter: _RingPainter(heading: heading),
+                ),
+              ),
 
-          // ── Needle (Qibla direction) ──
-          Transform.rotate(
-            angle: qiblaScreenAngle,
-            child: CustomPaint(
-              size: const Size(212, 212),
-              painter: _NeedlePainter(isAligned: isAligned),
-            ),
-          ),
+              // ── White inner circle ──
+              Container(
+                width: getWidth(190),
+                height: getHeight(190),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: isAligned
+                          ? const Color(0xFF2ECC71).withOpacity(0.15)
+                          : Colors.black.withOpacity(0.08),
+                      blurRadius: 16,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+              ),
 
-          // ── Center dot ──
-          Container(
-            width: getWidth(14),
-            height: getHeight(14),
-            decoration: const BoxDecoration(
-              color: Color(0xFF1A4A4A),
-              shape: BoxShape.circle,
-            ),
-          ),
+              // ── Needle: Normal=Fixed N-S, Aligned=Points to Qibla ──
+              // AnimatedRotation se smooth transition hogi
+              AnimatedRotation(
+                turns: needleAngle / (2 * math.pi),
+                duration: isAligned
+                    ? const Duration(milliseconds: 600)
+                    : Duration.zero, // Instant jab normal mode mein
+                curve: Curves.easeInOutCubic,
+                child: CustomPaint(
+                  size: const Size(212, 212),
+                  painter: _NeedlePainter(isAligned: isAligned),
+                ),
+              ),
 
-          // ✅ MAIN FIX: Kaaba icon compass ke BAHAR — rim par
-          // Transform se position calculate ho rahi hai
-          Transform.translate(
-            offset: Offset(iconX, iconY),
-            child: _buildKaabaIconOutside(isAligned),
+              // ── Center dot ──
+              Container(
+                width: getWidth(14),
+                height: getHeight(14),
+                decoration: BoxDecoration(
+                  color: isAligned
+                      ? const Color(0xFF2ECC71)
+                      : const Color(0xFF1A4A4A),
+                  shape: BoxShape.circle,
+                ),
+              ),
+
+              // ── Qibla Kaaba Icon on rim ──
+              Transform.translate(
+                offset: Offset(iconX, iconY),
+                child: _buildKaabaIconOutside(isAligned),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  //  Kaaba icon — compass rim ke bahar, 3 layer ring ke saath
   Widget _buildKaabaIconOutside(bool isAligned) {
     return TweenAnimationBuilder<Color?>(
       key: ValueKey(isAligned),
@@ -385,7 +470,7 @@ class _QiblaScreenState extends State<QiblaScreen> with RouteAware {
         return Stack(
           alignment: Alignment.center,
           children: [
-            // Layer 1: Outer glow ring
+            // Outer glow ring
             Container(
               width: getWidth(58),
               height: getHeight(58),
@@ -405,8 +490,7 @@ class _QiblaScreenState extends State<QiblaScreen> with RouteAware {
                 ],
               ),
             ),
-
-            // Layer 2: Inner border ring
+            // Inner border ring
             Container(
               width: getWidth(50),
               height: getHeight(50),
@@ -418,8 +502,7 @@ class _QiblaScreenState extends State<QiblaScreen> with RouteAware {
                 ),
               ),
             ),
-
-            // Layer 3: White circle with Kaaba emoji
+            // White circle with Kaaba emoji
             Container(
               width: getWidth(42),
               height: getHeight(42),
@@ -451,38 +534,44 @@ class _QiblaScreenState extends State<QiblaScreen> with RouteAware {
     );
   }
 
-  Widget _buildDegreeDisplay(double angle) {
+  Widget _buildDegreeDisplay(double angle, bool isAligned) {
     return Column(
       children: [
-        Text(
-          '${angle.toStringAsFixed(0)}°',
+        AnimatedDefaultTextStyle(
+          duration: const Duration(milliseconds: 300),
           style: TextStyle(
             fontSize: getFont(58),
             fontWeight: FontWeight.w900,
-            color: const Color(0xFF1A1A1A),
+            color: isAligned
+                ? const Color(0xFF2ECC71)
+                : const Color(0xFF1A1A1A),
             letterSpacing: -2,
           ),
+          child: Text('${angle.toStringAsFixed(0)}°'),
         ),
         Text(
-          "Device's angle to Qibla",
+          isAligned ? "Facing Qibla Direction ✓" : "Device's angle to Qibla",
           style: AppColors()
-              .customTextStyleRegular10(color: AppColors.black)
+              .customTextStyleRegular10(
+                color: isAligned ? const Color(0xFF2ECC71) : AppColors.black,
+              )
               .copyWith(fontSize: getFont(14)),
         ),
       ],
     );
   }
 
-  Widget _buildInstruction(double angle) {
+  Widget _buildInstruction(double angle, bool isAligned) {
     final bool onTarget = angle < 5 || angle > 355;
     final double shortAngle = angle <= 180 ? angle : 360 - angle;
     final String direction = angle <= 180 ? 'Right' : 'Left';
+
     final String text = onTarget
         ? 'Congratulations! You are facing the Qibla. ✓'
         : 'Rotate ${shortAngle.toStringAsFixed(0)}° to the $direction';
 
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 400),
       width: getWidth(300),
       height: getHeight(50),
       margin: EdgeInsets.symmetric(horizontal: getWidth(36)),
@@ -492,13 +581,21 @@ class _QiblaScreenState extends State<QiblaScreen> with RouteAware {
             ? const Color(0xFF2ECC71).withOpacity(0.20)
             : const Color(0xFF56C8C8).withOpacity(0.20),
         borderRadius: BorderRadius.circular(20),
+        border: onTarget
+            ? Border.all(color: const Color(0xFF2ECC71).withOpacity(0.5), width: 1.5)
+            : null,
       ),
       child: Text(
         text,
         textAlign: TextAlign.center,
         style: AppColors()
-            .customTextStyleRegular10(color: AppColors.black)
-            .copyWith(fontSize: getFont(12)),
+            .customTextStyleRegular10(
+              color: onTarget ? const Color(0xFF27AE60) : AppColors.black,
+            )
+            .copyWith(
+              fontSize: getFont(12),
+              fontWeight: onTarget ? FontWeight.bold : FontWeight.normal,
+            ),
       ),
     );
   }
@@ -555,23 +652,6 @@ class _QiblaScreenState extends State<QiblaScreen> with RouteAware {
   }
 }
 
-// ── Qibla Angle Calculator ──────────────────────────────────
-class QiblaCalculator {
-  static const double _kaabaLat = 21.4225;
-  static const double _kaabaLng = 39.8262;
-
-  static double calculate(double userLat, double userLng) {
-    final lat1 = userLat * math.pi / 180;
-    final lat2 = _kaabaLat * math.pi / 180;
-    final dLng = (_kaabaLng - userLng) * math.pi / 180;
-    final y = math.sin(dLng) * math.cos(lat2);
-    final x = math.cos(lat1) * math.sin(lat2) -
-        math.sin(lat1) * math.cos(lat2) * math.cos(dLng);
-    final bearing = math.atan2(y, x) * 180 / math.pi;
-    return (bearing + 360) % 360;
-  }
-}
-
 // ── Ring Painter ────────────────────────────────────────────
 class _RingPainter extends CustomPainter {
   final double heading;
@@ -584,10 +664,12 @@ class _RingPainter extends CustomPainter {
     const outerR = 140.0;
     const innerR = 112.0;
 
+    // Outer teal ring
     canvas.drawCircle(
         Offset(cx, cy), outerR, Paint()..color = const Color(0xFF5BBCB0));
     canvas.drawCircle(Offset(cx, cy), innerR, Paint()..color = Colors.white);
 
+    // Gear teeth
     final toothPaint = Paint()..color = const Color(0xFF5BBCB0);
     for (int i = 0; i < 36; i++) {
       final a = i * 2 * math.pi / 36;
@@ -602,6 +684,7 @@ class _RingPainter extends CustomPainter {
       canvas.drawPath(path, toothPaint);
     }
 
+    // Tick marks
     final tickPaint = Paint()
       ..color = const Color(0xFF2A6060)
       ..style = PaintingStyle.stroke;
@@ -617,31 +700,71 @@ class _RingPainter extends CustomPainter {
       );
     }
 
+    // N / E / S / W labels — ring ke saath rotate hote hain
     final tp = TextPainter(textDirection: TextDirection.ltr);
+    const double labelR = 88.0;
+
     final labels = {
-      'N': 0.0,
-      'E': math.pi / 2,
-      'S': math.pi,
-      'W': 3 * math.pi / 2,
+      'N': -math.pi / 2,
+      'E': 0.0,
+      'S': math.pi / 2,
+      'W': math.pi,
     };
+
     labels.forEach((lbl, angle) {
-      final r = innerR - 20;
+      // N ke liye red triangle bhi draw karo (compass standard)
+      if (lbl == 'N') {
+        final triPaint = Paint()..color = Colors.red;
+        final triPath = Path()
+          ..moveTo(cx + (labelR - 10) * math.cos(angle),
+              cy + (labelR - 10) * math.sin(angle))
+          ..lineTo(
+              cx + (labelR + 10) * math.cos(angle - 0.12),
+              cy + (labelR + 10) * math.sin(angle - 0.12))
+          ..lineTo(
+              cx + (labelR + 10) * math.cos(angle + 0.12),
+              cy + (labelR + 10) * math.sin(angle + 0.12))
+          ..close();
+        canvas.drawPath(triPath, triPaint);
+      }
+
       tp.text = TextSpan(
         text: lbl,
         style: TextStyle(
-          color: lbl == 'N' ? Colors.red : const Color(0xFF1A4A4A),
-          fontSize: 12,
+          color: lbl == 'N' ? Colors.white : const Color(0xFF1A4A4A),
+          fontSize: 14,
           fontWeight: FontWeight.bold,
         ),
       );
       tp.layout();
-      tp.paint(
-        canvas,
-        Offset(
-          cx + r * math.sin(angle) - tp.width / 2,
-          cy - r * math.cos(angle) - tp.height / 2,
+
+      final x = cx + labelR * math.cos(angle) - tp.width / 2;
+      final y = cy + labelR * math.sin(angle) - tp.height / 2;
+      tp.paint(canvas, Offset(x, y));
+    });
+
+    // Degree markers: 0, 90, 180, 270
+    final degPainter = TextPainter(textDirection: TextDirection.ltr);
+    const double degR = 66.0;
+    final degLabels = {
+      '0°': -math.pi / 2,
+      '90°': 0.0,
+      '180°': math.pi / 2,
+      '270°': math.pi,
+    };
+    degLabels.forEach((lbl, angle) {
+      degPainter.text = TextSpan(
+        text: lbl,
+        style: const TextStyle(
+          color: Color(0xFF5BBCB0),
+          fontSize: 9,
+          fontWeight: FontWeight.w600,
         ),
       );
+      degPainter.layout();
+      final x = cx + degR * math.cos(angle) - degPainter.width / 2;
+      final y = cy + degR * math.sin(angle) - degPainter.height / 2;
+      degPainter.paint(canvas, Offset(x, y));
     });
   }
 
@@ -650,6 +773,9 @@ class _RingPainter extends CustomPainter {
 }
 
 // ── Needle Painter ──────────────────────────────────────────
+// Normal mode : Red tip upar (North), Teal neeche (South)
+// Aligned mode: Fully GREEN — dono tips green
+//               Top tip = Qibla (pointed toward Qibla)
 class _NeedlePainter extends CustomPainter {
   final bool isAligned;
   const _NeedlePainter({required this.isAligned});
@@ -659,36 +785,123 @@ class _NeedlePainter extends CustomPainter {
     final cx = size.width / 2;
     final cy = size.height / 2;
 
-    // Upar = Qibla direction
-    canvas.drawPath(
-      Path()
-        ..moveTo(cx, cy - 72)
-        ..lineTo(cx - 9, cy)
-        ..lineTo(cx, cy + 18)
-        ..lineTo(cx + 9, cy)
-        ..close(),
-      Paint()
-        ..color =
-            isAligned ? const Color(0xFF2ECC71) : const Color(0xFFD4A017),
-    );
+    if (isAligned) {
+      // ── ALIGNED MODE: Full green needle pointing to Qibla ──
 
-    // Neeche = opposite
-    canvas.drawPath(
-      Path()
-        ..moveTo(cx, cy + 72)
-        ..lineTo(cx - 9, cy)
-        ..lineTo(cx, cy - 18)
-        ..lineTo(cx + 9, cy)
-        ..close(),
-      Paint()..color = const Color(0xFF5BBCB0),
-    );
+      // Outer glow effect
+      final glowPaint = Paint()
+        ..color = const Color(0xFF2ECC71).withOpacity(0.25)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+      canvas.drawPath(
+        Path()
+          ..moveTo(cx, cy - 80)
+          ..lineTo(cx - 12, cy)
+          ..lineTo(cx, cy + 80)
+          ..lineTo(cx + 12, cy)
+          ..close(),
+        glowPaint,
+      );
+
+      // Main Qibla needle — full green
+      // Top half (Qibla direction)
+      canvas.drawPath(
+        Path()
+          ..moveTo(cx, cy - 75)
+          ..lineTo(cx - 9, cy - 8)
+          ..lineTo(cx, cy + 6)
+          ..lineTo(cx + 9, cy - 8)
+          ..close(),
+        Paint()..color = const Color(0xFF2ECC71),
+      );
+
+      // Bottom half — lighter green
+      canvas.drawPath(
+        Path()
+          ..moveTo(cx, cy + 75)
+          ..lineTo(cx - 9, cy + 8)
+          ..lineTo(cx, cy - 6)
+          ..lineTo(cx + 9, cy + 8)
+          ..close(),
+        Paint()..color = const Color(0xFF27AE60).withOpacity(0.6),
+      );
+
+      // Center ring
+      canvas.drawCircle(
+        Offset(cx, cy),
+        8,
+        Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.fill,
+      );
+      canvas.drawCircle(
+        Offset(cx, cy),
+        8,
+        Paint()
+          ..color = const Color(0xFF2ECC71)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2,
+      );
+
+      // Checkmark in center dot
+      canvas.drawCircle(
+        Offset(cx, cy),
+        4,
+        Paint()..color = const Color(0xFF2ECC71),
+      );
+    } else {
+      // ── NORMAL MODE: Standard compass needle (Red=N, Teal=S) ──
+
+      // Red tip (North — upar)
+      canvas.drawPath(
+        Path()
+          ..moveTo(cx, cy - 75)
+          ..lineTo(cx - 9, cy - 8)
+          ..lineTo(cx, cy + 6)
+          ..lineTo(cx + 9, cy - 8)
+          ..close(),
+        Paint()..color = const Color(0xFFE53935),
+      );
+
+      // Teal tip (South — neeche)
+      canvas.drawPath(
+        Path()
+          ..moveTo(cx, cy + 75)
+          ..lineTo(cx - 9, cy + 8)
+          ..lineTo(cx, cy - 6)
+          ..lineTo(cx + 9, cy + 8)
+          ..close(),
+        Paint()..color = const Color(0xFF5BBCB0),
+      );
+
+      // Center white divider circle
+      canvas.drawCircle(
+        Offset(cx, cy),
+        7,
+        Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.fill,
+      );
+      canvas.drawCircle(
+        Offset(cx, cy),
+        7,
+        Paint()
+          ..color = const Color(0xFF1A4A4A)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5,
+      );
+
+      // Center dot
+      canvas.drawCircle(
+        Offset(cx, cy),
+        3,
+        Paint()..color = const Color(0xFF1A4A4A),
+      );
+    }
   }
 
   @override
   bool shouldRepaint(_NeedlePainter old) => old.isAligned != isAligned;
 }
-
-// ── Arrow Tip Painter — HATAYA (bahar icon ki wajah se zaroorat nahi) ──
 
 // ── Background Islamic Pattern ──────────────────────────────
 class _BgPatternPainter extends CustomPainter {

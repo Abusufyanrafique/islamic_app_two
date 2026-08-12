@@ -152,7 +152,9 @@ class MuhammadNameScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
       
-        elevation: 0,
+       elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         title: Text(
           "99 Names of Muhammad ﷺ",
            style: AppColors().customTextStyleBold16(
