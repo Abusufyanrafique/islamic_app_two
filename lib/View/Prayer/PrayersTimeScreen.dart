@@ -693,6 +693,7 @@ class PrayerTimeCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(title, style: AppColors().customTextStyleBold16()),
+                SizedBox(height: getHeight(10),),
                 Icon(
                     switchValue
                         ? Icons.notifications_active

@@ -103,7 +103,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     });
   }
 
-  Future<void> _onLoadData(LoadHomeData event, Emitter<HomeState> emit) async {
+  Future<void> _onLoadData(
+    LoadHomeData event, 
+    Emitter<HomeState> emit) async {
     final cache = _hive.loadTodayCache();
 
     if (cache != null) {
@@ -326,7 +328,6 @@ class HomeScreen extends StatelessWidget {
                           ),
                 
                            SizedBox(width: getWidth(4)),
-                
                           Text(
                             "Today / ${_getDayName()}",
                 
@@ -432,11 +433,38 @@ class HomeScreen extends StatelessWidget {
                   
                       SizedBox(height: getHeight(12)),
                   
-                      Text(
-                        "Prayer Time",
-                        style: AppColors().customTextStyleBold16(
-                          color: Colors.black,
+                      // Text(
+                      //   "Prayer Time",
+                      //   style: AppColors().customTextStyleBold16(
+                      //     color: Colors.black,
+                      //   ),
+                      // ),
+                      Padding(
+                        padding:  EdgeInsets.only(
+                        left: getWidth(6),
+                        right: getWidth(8),
                         ),
+                        child: Row(
+                                      // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          'Current Prayer : ${_getCurrentPrayerName(state.cachedTimings)}',
+                                          style: AppColors().customTextStyle14(
+                                            color: Colors.black,
+                                          ).copyWith(fontWeight: FontWeight.w600),
+                                        ),
+                                        Spacer(),
+                                        Text(
+                                         'Next Prayer : ${_getUpcomingPrayerName(state.cachedTimings).replaceAll(' (Tomorrow)', '')}',
+                                            style: AppColors().customTextStyle14(
+                                            color: AppColors.primaryColor,
+                                            ).copyWith(
+                        fontWeight: FontWeight.w600,
+                        fontSize: getFont(12),
+                        ),
+                                           ),
+                                      ],
+                                    ),
                       ),
                       SizedBox(height: getHeight(12)),
                       _buildPrayerTable(width, state, context),
@@ -524,13 +552,15 @@ class HomeScreen extends StatelessWidget {
     HomeState state
     ) {
     return Container(
-      // height: getHeight(148),
+      height: getHeight(148),
       width: width,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         color: AppColors.primaryColor,
         image: DecorationImage(
-          image: AssetImage(AllImages.containerBackground),
+          image: AssetImage(
+            AllImages.containerBackground,
+            ),
 
           fit: BoxFit.cover,
         ),
@@ -538,7 +568,6 @@ class HomeScreen extends StatelessWidget {
 
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
         children: [
           Padding(
             padding:  EdgeInsets.only(
@@ -547,7 +576,6 @@ class HomeScreen extends StatelessWidget {
 
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-
               crossAxisAlignment: CrossAxisAlignment.start,
 
               children: [
@@ -555,12 +583,12 @@ class HomeScreen extends StatelessWidget {
                   AllText.now,
                   _getCurrentPrayerName(state.cachedTimings),
                 ),
-
+                  SizedBox(height: getHeight(6),),
                 _bannerText(
                   AllText.upcoming,
                   _getUpcomingPrayerName(state.cachedTimings),
                 ),
-
+                SizedBox(height: getHeight(6),),
                 _bannerText("Location", state.locationName),
               ],
             ),
@@ -577,7 +605,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPrayerTable(
+ Widget _buildPrayerTable(
   double width,
   HomeState state,
   BuildContext context,
@@ -593,99 +621,102 @@ class HomeScreen extends StatelessWidget {
           fit: BoxFit.cover,
         ),
       ),
-      child: Column(
-        children: [
-          // ✅ Fixed Header Row
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 15),
-            child: SizedBox(
-              height: 45,
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: width * 0.28,
-                    child: const Text(
-                      'Prayer',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+      child: Padding(
+        padding:  EdgeInsets.only(
+          left: getWidth(30),
+          ),
+        child: Column(
+          children: [
+            // Header Row
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: getWidth(30),
+                ),
+              child: SizedBox(
+                height: getHeight(45),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Prayer',
+                        style: AppColors().customTextStyle18().copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                  SizedBox(
-                    width: width * 0.28,
-                    child: const Text(
-                      'Adhan',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                    SizedBox(width: 10,),
+                    Expanded(
+                      child: Text(
+                        'Adhan',
+                        style: AppColors().customTextStyle18().copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                  SizedBox(
-                    width: width * 0.28,
-                    child: const Text(
-                      'Iqama',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Text(
+                        'Iqama',
+                        style: AppColors().customTextStyle18().copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-
-          // ✅ Divider (optional)
-          Divider(color: Colors.white.withOpacity(0.3), height: 1),
-
-          // ✅ Scrollable Rows
-          Expanded(
-            child: ListView.builder(
-              itemCount: state.dynamicPrayerTimes.length,
-              itemBuilder: (context, index) {
-                final time = state.dynamicPrayerTimes[index];
-                return Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: getWidth(15),
-                     vertical: getHeight(6)),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: width * 0.28,
-                        child: Text(
-                          time['Prayer']!,
-                          style: AppColors().customTextStyle14(
-                            color: Colors.white,
+        
+            Divider(
+              color: Colors.white.withOpacity(0.3),
+               height: 1),
+        
+            Expanded(
+              child: ListView.builder(
+                itemCount: state.dynamicPrayerTimes.length,
+                itemBuilder: (context, index) {
+                  final time = state.dynamicPrayerTimes[index];
+                  return Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: getWidth(30),
+                      vertical: getHeight(6),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            time['Prayer']!,
+                            style: AppColors().customTextStyle14(
+                              color: Colors.white,
                             ),
+                          ),
                         ),
-                      ),
-                      SizedBox(
-                        width: width * 0.28,
-                        child: Text(
-                          time['Adhun']!,
-                          style: AppColors().customTextStyle14(
-                            color: Colors.white,
+                        Expanded(
+                          child: Text(
+                            time['Adhun']!,
+                            style: AppColors().customTextStyle14(
+                              color: Colors.white,
                             ),
+                          ),
                         ),
-                      ),
-                      SizedBox(
-                        width: width * 0.28,
-                        child: Text(
-                          time['Iqama']!,
-                          style: AppColors().customTextStyle14(
-                            color: Colors.white,
+                        Expanded(
+                          child: Text(
+                            time['Iqama']!,
+                            style: AppColors().customTextStyle14(
+                              color: Colors.white,
                             ),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                );
-              },
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     ),
   );

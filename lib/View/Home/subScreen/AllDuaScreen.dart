@@ -6,6 +6,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:local_notification/services/audio_service/audio_service.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../Utils/Constants/AllColors.dart';
 import '../../../Utils/Constants/AllImages.dart';
 import '../../../Utils/Constants/SizeConfig.dart';
@@ -233,7 +234,11 @@ class AllDuaScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: getHeight(10)),
-            const Text("Quick Access"),
+             Text("Quick Access",
+            style: AppColors().customTextStyleBold16().copyWith(
+
+            ),
+            ),
             SizedBox(height: getHeight(10)),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -484,20 +489,73 @@ class _AllDuaCardState extends State<AllDuaCard> {
                               onTap: () {
                                 BookmarkManager.instance
                                     .toggle(selectedDua.arabic);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      isSaved
-                                          ? 'Bookmark hata diya gaya'
-                                          : 'Bookmark ho gaya! ✅',
-                                    ),
-                                    duration:
-                                        const Duration(milliseconds: 800),
-                                    backgroundColor: isSaved
-                                        ? Colors.grey
-                                        : const Color(0xff5BC0BE),
-                                  ),
-                                );
+                               ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+ScaffoldMessenger.of(context).showSnackBar(
+  SnackBar(
+    behavior: SnackBarBehavior.floating,
+    elevation: 0,
+    margin: EdgeInsets.only(
+      left: getWidth(20),
+      right: getWidth(20),
+      bottom: getHeight(20),
+    ),
+    padding: EdgeInsets.symmetric(
+      horizontal: getWidth(14),
+      vertical: getHeight(12),
+    ),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(14),
+    ),
+    backgroundColor: isSaved
+        ? const Color(0xFF555555)
+        : const Color(0xFF5BC0BE),
+    duration: const Duration(milliseconds: 1200),
+    content: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          height: getHeight(30),
+          width: getWidth(30),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.20),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            isSaved
+                ? Icons.bookmark_remove_rounded
+                : Icons.bookmark_rounded,
+            color: Colors.white,
+            size: getFont(17),
+          ),
+        ),
+
+        SizedBox(width: getWidth(10)),
+
+        Expanded(
+          child: Text(
+            isSaved
+                ? 'Bookmark removed'
+                : 'Bookmark added successfully',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: getFont(12),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+
+        SizedBox(width: getWidth(6)),
+
+        Icon(
+          Icons.check_circle_rounded,
+          color: Colors.white,
+          size: getFont(18),
+        ),
+      ],
+    ),
+  ),
+);
                               },
                               child: Icon(
                                 isSaved
@@ -753,7 +811,9 @@ class DuaCard extends StatelessWidget {
         children: [
           Container(
             padding:
-                EdgeInsets.symmetric(horizontal: getWidth(10), vertical: getHeight(4)),
+                EdgeInsets.symmetric(
+                  horizontal: getWidth(10),
+                   vertical: getHeight(4)),
             decoration: BoxDecoration(
               color: dua.labelBg,
               borderRadius: BorderRadius.circular(6),
@@ -811,18 +871,41 @@ class DuaCard extends StatelessWidget {
   }
 }
 
+
 class BookmarkManager {
   // Singleton
   static final BookmarkManager instance = BookmarkManager._();
   BookmarkManager._();
 
+  static const String _prefsKey = 'bookmarked_arabic';
+
   // Set of bookmarked arabic texts (unique identifier)
   final ValueNotifier<Set<String>> bookmarkedArabic =
       ValueNotifier<Set<String>>({});
 
+  bool _isLoaded = false;
+
+  /// Call this once early in app startup (e.g. in main() before runApp,
+  /// or in initState of your root widget) so saved bookmarks are loaded
+  /// before the UI needs them.
+  Future<void> init() async {
+    if (_isLoaded) return;
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getStringList(_prefsKey);
+    if (saved != null) {
+      bookmarkedArabic.value = saved.toSet();
+    }
+    _isLoaded = true;
+  }
+
+  Future<void> _persist(Set<String> data) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_prefsKey, data.toList());
+  }
+
   bool isBookmarked(String arabic) => bookmarkedArabic.value.contains(arabic);
 
-  /// Toggles bookmark and returns whether it is now bookmarked
+  /// Toggles bookmark, saves to local storage, and returns whether it is now bookmarked
   bool toggle(String arabic) {
     final updated = Set<String>.from(bookmarkedArabic.value);
     bool isNowBookmarked;
@@ -834,6 +917,8 @@ class BookmarkManager {
       isNowBookmarked = true;
     }
     bookmarkedArabic.value = updated;
+    // Persist immediately so it survives app close/reopen.
+    _persist(updated);
     return isNowBookmarked;
   }
 }
@@ -850,7 +935,7 @@ class DuasCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: const Color(0xFFE0E0E0),
-          ),
+        ),
       ),
       padding: EdgeInsets.all(16),
       child: Column(
@@ -984,18 +1069,18 @@ class BookmarksScreen extends StatelessWidget {
         surfaceTintColor: Colors.transparent,
         backgroundColor: Colors.white,
         centerTitle: true,
-         bottom: PreferredSize(
-    preferredSize: const Size.fromHeight(0.12),
-    child: Container(
-      color: const Color(0xFF6B7678),
-      height: 0.12,
-    ),
-  ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(0.12),
+          child: Container(
+            color: const Color(0xFF6B7678),
+            height: 0.12,
+          ),
+        ),
         title: Text(
           '🔖 Bookmarks',
-         style:AppColors().customTextStyleBold16().copyWith(
-            fontSize: getFont(16),
-          )
+          style: AppColors().customTextStyleBold16().copyWith(
+                fontSize: getFont(16),
+              ),
         ),
       ),
       body: ValueListenableBuilder<Set<String>>(
@@ -1057,11 +1142,10 @@ class BookmarksScreen extends StatelessWidget {
                 SizedBox(height: getHeight(8)),
                 Text(
                   'All Duas',
-                  style: TextStyle(
-                    fontSize: getFont(14),
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF888888),
-                  ),
+                  style: AppColors().customTextStyleBold16().copyWith(
+                    fontSize: getFont(16),
+                    color: AppColors.labbaik,
+                  )
                 ),
                 SizedBox(height: getHeight(10)),
                 ...modelDuas.asMap().entries.map(
@@ -1081,6 +1165,7 @@ class BookmarksScreen extends StatelessWidget {
     );
   }
 }
+
 class AllBookMarkDuaCard extends StatelessWidget {
   final String index;
   final String arabicName;
@@ -1104,11 +1189,11 @@ class AllBookMarkDuaCard extends StatelessWidget {
       color: AppColors.white,
       margin: EdgeInsets.symmetric(
         horizontal: getWidth(12),
-         vertical: getHeight(8),
-         ),
+        vertical: getHeight(8),
+      ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(6),
-        ),
+      ),
       child: Padding(
         padding: EdgeInsets.all(12),
         child: Column(
@@ -1127,38 +1212,35 @@ class AllBookMarkDuaCard extends StatelessWidget {
               arabicName,
               textAlign: TextAlign.right,
               style: AppColors().customTextStyleBold16().copyWith(
-                fontSize: getFont(20),
-               fontWeight: FontWeight.bold)
+                  fontSize: getFont(20), fontWeight: FontWeight.bold),
             ),
             SizedBox(height: getHeight(20)),
             Text(
               englishName,
-              style:AppColors().customTextStyleBold16().copyWith(
-                 fontSize: getFont(16), 
-                color: Colors.black87,
-              )
+              style: AppColors().customTextStyleBold16().copyWith(
+                    fontSize: getFont(16),
+                    color: Colors.black87,
+                  ),
             ),
             SizedBox(height: getHeight(8)),
             Text(
               urdu,
               textDirection: TextDirection.rtl,
-              style:AppColors().customTextStyle14().copyWith(
-                 fontSize: getFont(16), 
-                color: Colors.black54,
-              )
+              style: AppColors().customTextStyle14().copyWith(
+                    fontSize: getFont(16),
+                    color: Colors.black54,
+                  ),
             ),
             SizedBox(height: getHeight(10)),
             Align(
               alignment: Alignment.bottomRight,
               child: Text(
                 reference,
-                style: AppColors().customTextStyle14(
-
-                ).copyWith(
-                   fontSize: getFont(12),
-                  color: Colors.grey,
-                  fontStyle: FontStyle.italic,
-                )
+                style: AppColors().customTextStyle14().copyWith(
+                      fontSize: getFont(12),
+                      color: Colors.grey,
+                      fontStyle: FontStyle.italic,
+                    ),
               ),
             ),
           ],
@@ -1166,4 +1248,5 @@ class AllBookMarkDuaCard extends StatelessWidget {
       ),
     );
   }
+
 }

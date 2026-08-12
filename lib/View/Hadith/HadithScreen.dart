@@ -188,7 +188,18 @@ class HadithListScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-          title: Text(chapterName,style: TextStyle(color: AppColors.primaryColor),),
+        // centerTitle: true,
+          bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(0.12),
+          child: Container(
+            color: const Color(0xFF6B7678),
+            height: 0.12,
+          ),
+        ),
+          title: Text(
+            chapterName,
+            style: TextStyle(
+              color: AppColors.primaryColor),),
       foregroundColor: AppColors.primaryColor ,
       ),
       body: FutureBuilder<AllHadithModel?>(
@@ -214,10 +225,11 @@ class HadithListScreen extends StatelessWidget {
               final hadith = hadithList[index];
               return Container(
                 decoration: BoxDecoration(
-                  color: AppColors.white
+
                 ),
                 child: Card(
-                  elevation: 4,
+                  color: AppColors.white,
+                  // elevation: 4,
                   margin:  EdgeInsets.only(bottom: getHeight(15)),
                   child: Padding(
                     padding: EdgeInsets.all(12.0),
@@ -250,7 +262,12 @@ class HadithListScreen extends StatelessWidget {
                         // Arabic
                         Text(hadith.hadithArabic ?? "",
                             textAlign: TextAlign.right,
-                            style:  TextStyle(fontSize: getFont(24), fontWeight: FontWeight.bold, fontFamily: 'ArabicFont')),
+                            style: AppColors().customTextStyle18().copyWith(
+                              fontSize: getFont(24), 
+                              fontWeight: FontWeight.bold,
+                               fontFamily: 'ArabicFont',
+                            )
+                               ),
                          SizedBox(height: getHeight(10)),
                         // Urdu
                         Text(hadith.hadithUrdu ?? "",

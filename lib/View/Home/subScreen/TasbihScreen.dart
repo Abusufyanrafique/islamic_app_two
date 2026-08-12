@@ -1,9 +1,11 @@
+import 'dart:convert';
+
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:local_notification/Utils/Constants/AllColors.dart';
 import 'package:local_notification/Utils/Constants/SizeConfig.dart';
-
 
 class TasbihModel {
   final int id;
@@ -19,7 +21,6 @@ class TasbihModel {
   });
 }
 
-
 // --- Events ---
 abstract class TasbihEvent {}
 
@@ -33,6 +34,12 @@ class IncrementCount extends TasbihEvent {}
 class ResetCount extends TasbihEvent {
   final int index;
   ResetCount(this.index);
+}
+
+// Fired once when saved counts are loaded from local storage on app start.
+class LoadCounts extends TasbihEvent {
+  final List<int> counts;
+  LoadCounts(this.counts);
 }
 
 // --- State ---
@@ -50,31 +57,70 @@ class TasbihState {
   }
 }
 
+// --- Local storage helper (SharedPreferences) ---
+class TasbihLocalStorage {
+  static const String _countsKey = 'tasbih_counts';
+
+  // Save the full counts list as a JSON string.
+  static Future<void> saveCounts(List<int> counts) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_countsKey, jsonEncode(counts));
+  }
+
+  // Load counts list; returns null if nothing saved yet.
+  static Future<List<int>?> loadCounts() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString(_countsKey);
+    if (saved == null) return null;
+    final List<dynamic> decoded = jsonDecode(saved);
+    return decoded.map((e) => e as int).toList();
+  }
+}
+
 // --- BLoC ---
 class TasbihBloc extends Bloc<TasbihEvent, TasbihState> {
-  TasbihBloc(int listLength)
+  final int listLength;
+
+  TasbihBloc(this.listLength)
       : super(TasbihState(
-    selectedIndex: -1,
-    counts: List<int>.generate(listLength, (index) => 0),
-  )) {
+          selectedIndex: -1,
+          counts: List<int>.generate(listLength, (index) => 0),
+        )) {
+    // Load saved counts from local storage as soon as the bloc is created.
+    _loadSavedCounts();
+
+    on<LoadCounts>((event, emit) {
+      emit(state.copyWith(counts: event.counts));
+    });
 
     on<SelectTasbih>((event, emit) {
       emit(state.copyWith(selectedIndex: event.index));
     });
 
-    on<IncrementCount>((event, emit) {
+    on<IncrementCount>((event, emit) async {
       if (state.selectedIndex != -1) {
         List<int> newCounts = List.from(state.counts);
         newCounts[state.selectedIndex]++;
         emit(state.copyWith(counts: newCounts));
+        // Persist immediately so nothing is lost if the app is closed.
+        await TasbihLocalStorage.saveCounts(newCounts);
       }
     });
 
-    on<ResetCount>((event, emit) {
+    on<ResetCount>((event, emit) async {
       List<int> newCounts = List.from(state.counts);
       newCounts[event.index] = 0;
       emit(state.copyWith(counts: newCounts));
+      // Persist the reset so it's remembered too.
+      await TasbihLocalStorage.saveCounts(newCounts);
     });
+  }
+
+  Future<void> _loadSavedCounts() async {
+    final saved = await TasbihLocalStorage.loadCounts();
+    if (saved != null && saved.length == listLength) {
+      add(LoadCounts(saved));
+    }
   }
 }
 
@@ -100,31 +146,31 @@ class TasbihScreen extends StatelessWidget {
       create: (context) => TasbihBloc(tasbihList.length),
       child: Scaffold(
         appBar: AppBar(
-           elevation: 0,
-        scrolledUnderElevation: 0,
-        surfaceTintColor: Colors.transparent,
-          title:  Text(
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          surfaceTintColor: Colors.transparent,
+          title: Text(
             "Tasbih Counter",
-          style:AppColors().customTextStyleBold16().copyWith(
-            fontSize: getFont(16),
-          )
-           ),
+            style: AppColors().customTextStyleBold16().copyWith(
+                  fontSize: getFont(16),
+                ),
+          ),
           centerTitle: true,
-           bottom: PreferredSize(
-    preferredSize: const Size.fromHeight(0.12),
-    child: Container(
-      color: const Color(0xFF6B7678),
-      height: 0.12,
-    ),
-  ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(0.12),
+            child: Container(
+              color: const Color(0xFF6B7678),
+              height: 0.12,
+            ),
+          ),
         ),
         body: Padding(
-          padding:  EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           child: BlocBuilder<TasbihBloc, TasbihState>(
             builder: (context, state) {
               return Column(
                 children: [
-                   SizedBox(height: getHeight(10)),
+                  SizedBox(height: getHeight(10)),
                   Expanded(
                     child: ListView.builder(
                       itemCount: tasbihList.length,
@@ -133,7 +179,7 @@ class TasbihScreen extends StatelessWidget {
                         final bool isSelected = state.selectedIndex == index;
 
                         return Padding(
-                          padding:  EdgeInsets.only(bottom: getHeight(12)),
+                          padding: EdgeInsets.only(bottom: getHeight(12)),
                           child: Row(
                             children: [
                               Expanded(
@@ -142,61 +188,55 @@ class TasbihScreen extends StatelessWidget {
                                   child: Container(
                                     padding: const EdgeInsets.all(16),
                                     decoration: BoxDecoration(
-                                      color: isSelected ? const Color(0xffE0F7F6) : Colors.white,
+                                      color: isSelected ? 
+                                      const Color(0xffE0F7F6) : Colors.white,
                                       borderRadius: BorderRadius.circular(10),
                                       boxShadow: [
-    BoxShadow(
-      color: Colors.black.withOpacity(0.08),
-      blurRadius: 8,
-      spreadRadius: 1,
-      offset: const Offset(0, 2),
-    ),
-  ],
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.08),
+                                          blurRadius: 8,
+                                          spreadRadius: 1,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
                                     ),
                                     child: Row(
                                       children: [
                                         Column(
                                           children: [
-                                            Text("${state.counts[index]}", style:
-                                             AppColors().customTextStyleBold16(
-                                                color:AppColors.black,
-                                              )
-                                              
-                                              ),
-                                             Text("Count", style:
-                                              AppColors().customTextStyle14(
-                                                color:Color(0xFF636366),
-                                              )
-                                               ),
+                                            Text("${state.counts[index]}",
+                                                style: AppColors().customTextStyleBold16(
+                                                  color: AppColors.black,
+                                                )),
+                                            Text("Count",
+                                                style: AppColors().customTextStyle14(
+                                                  color: Color(0xFF636366),
+                                                )),
                                           ],
                                         ),
-                                         SizedBox(width: getWidth(16)),
+                                        SizedBox(width: getWidth(16)),
                                         Expanded(
                                           child: Column(
                                             crossAxisAlignment: CrossAxisAlignment.end,
                                             children: [
-                                              Text(item.arabic, 
-                                              textDirection: TextDirection.rtl, 
-                                              style:  TextStyle(
-                                                fontSize: getFont(20), 
-                                              fontWeight: FontWeight.bold, 
-                                              color: Color(0xff5BC0BE), 
-                                              fontFamily: 'Amiri')),
-                                               SizedBox(height: getHeight(4)),
-                                              Text(item.english, style:  
-                                              AppColors().customTextStyle14().copyWith(
-                                                fontSize: getFont(12),
-                                              )
-                                                 ),
-                                               SizedBox(height: getHeight(2)),
+                                              Text(item.arabic,
+                                                  textDirection: TextDirection.rtl,
+                                                  style: TextStyle(
+                                                      fontSize: getFont(20),
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Color(0xff5BC0BE),
+                                                      fontFamily: 'Amiri')),
+                                              SizedBox(height: getHeight(4)),
+                                              Text(item.english,
+                                                  style: AppColors().customTextStyle14().copyWith(
+                                                        fontSize: getFont(12),
+                                                      )),
+                                              SizedBox(height: getHeight(2)),
                                               Text(item.urdu,
-                                               textDirection: 
-                                               TextDirection.rtl, 
-                                               style:
-                                              AppColors().customTextStyle14().copyWith(
-                                                fontSize: getFont(12),
-                                              )
-                                                ),
+                                                  textDirection: TextDirection.rtl,
+                                                  style: AppColors().customTextStyle14().copyWith(
+                                                        fontSize: getFont(12),
+                                                      )),
                                             ],
                                           ),
                                         ),
@@ -205,25 +245,24 @@ class TasbihScreen extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                               SizedBox(width: getWidth(10)),
+                              SizedBox(width: getWidth(10)),
                               GestureDetector(
                                 onTap: () => context.read<TasbihBloc>().add(ResetCount(index)),
                                 child: Container(
                                   height: getHeight(70),
-                                   width: getWidth(50),
+                                  width: getWidth(50),
                                   decoration: BoxDecoration(
-                                    color: Colors.white, 
-                                    borderRadius: BorderRadius.circular(6), 
-                                      boxShadow: [
-    BoxShadow(
-      color: Colors.black.withOpacity(0.08),
-      blurRadius: 10,
-      spreadRadius: 2,
-      offset: const Offset(0, 3),
-    ),
-  ],
-                                    
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(6),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.08),
+                                        blurRadius: 10,
+                                        spreadRadius: 2,
+                                        offset: const Offset(0, 3),
                                       ),
+                                    ],
+                                  ),
                                   child: const Icon(Icons.refresh),
                                 ),
                               ),
@@ -233,69 +272,66 @@ class TasbihScreen extends StatelessWidget {
                       },
                     ),
                   ),
-                   SizedBox(height: getHeight(20)),
+                  SizedBox(height: getHeight(20)),
 
                   // Selected Tasbih Card
                   Container(
-                    height: getHeight(150), width: double.infinity,
-                    decoration: BoxDecoration(color: Colors.white,
-                     borderRadius: BorderRadius.circular(10),
-                       boxShadow: [
-    BoxShadow(
-      color: Colors.black.withOpacity(0.08),
-      blurRadius: 10,
-      spreadRadius: 2,
-      offset: const Offset(0, 3),
-    ),
-  ],
-                        
+                    height: getHeight(150),
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 10,
+                          spreadRadius: 2,
+                          offset: const Offset(0, 3),
                         ),
+                      ],
+                    ),
                     child: Center(
                       child: state.selectedIndex == -1
                           ? const Text("Select Tasbih")
                           : Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(tasbihList[state.selectedIndex].arabic, textDirection: TextDirection.rtl, 
-                          style:  TextStyle(
-                            fontSize: getFont(22), 
-                            fontWeight: FontWeight.bold, 
-                            color: Color(0xff5BC0BE), 
-                            fontFamily: 'Amiri')),
-                           SizedBox(height: getHeight(4)),
-                          Text(
-                            tasbihList[state.selectedIndex].english,
-                            style: AppColors().customTextStyle20().copyWith(
-                              fontSize: getFont(14)
-                            )
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(tasbihList[state.selectedIndex].arabic,
+                                    textDirection: TextDirection.rtl,
+                                    style: TextStyle(
+                                        fontSize: getFont(22),
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xff5BC0BE),
+                                        fontFamily: 'Amiri')),
+                                SizedBox(height: getHeight(4)),
+                                Text(
+                                  tasbihList[state.selectedIndex].english,
+                                  style: AppColors().customTextStyle20().copyWith(fontSize: getFont(14)),
+                                ),
+                                SizedBox(height: getHeight(2)),
+                                Text(tasbihList[state.selectedIndex].urdu, textDirection: TextDirection.rtl),
+                              ],
                             ),
-                           SizedBox(height: getHeight(2)),
-                          Text(tasbihList[state.selectedIndex].urdu, textDirection: TextDirection.rtl),
-                        ],
-                      ),
                     ),
                   ),
-                   SizedBox(height: getHeight(20)),
+                  SizedBox(height: getHeight(20)),
 
                   // Counter Button
                   GestureDetector(
                     onTap: () => context.read<TasbihBloc>().add(IncrementCount()),
                     child: Container(
-                      height: getHeight(50), width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: const Color(0xff56C8C8), 
-                        borderRadius: BorderRadius.circular(50)),
+                      height: getHeight(50),
+                      width: double.infinity,
+                      decoration: BoxDecoration(color: const Color(0xff56C8C8), borderRadius: BorderRadius.circular(50)),
                       child: Center(
                         child: Text(
                           state.selectedIndex == -1 ? "Start" : "${state.counts[state.selectedIndex]}",
-                          style:  TextStyle(fontSize: getFont(20),
-                           color: Colors.white, 
-                           fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: getFont(20), color: Colors.white, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),
                   ),
-                  // const SizedBox(height: 20),
+                  
                 ],
               );
             },

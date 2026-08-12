@@ -342,13 +342,25 @@ class _JuzListScreensState extends State<JuzListScreens>
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Expanded(
-                          flex: 2,
-                          child: SvgPicture.asset(
-                            "assets/icons/Quranpakiocn.svg",
-                            height: getHeight(150),
-                            fit: BoxFit.contain,
-                          ),
-                        ),
+  flex: 2,
+  child: Container(
+    decoration: BoxDecoration(
+      boxShadow: [
+        BoxShadow(
+          color: const Color(0xFF65D6EC).withOpacity(0.45),
+          offset: const Offset(0, 0),
+          blurRadius: 63,
+          spreadRadius: 0,
+        ),
+      ],
+    ),
+    child: SvgPicture.asset(
+      "assets/icons/Quranpakiocn.svg",
+      height: getHeight(150),
+      fit: BoxFit.contain,
+    ),
+  ),
+),
                         SizedBox(width: getWidth(10)),
                         Expanded(
                           flex: 2,
@@ -785,7 +797,7 @@ class _SurahDetailssScreenState extends State<SurahDetailssScreen> {
     DefaultCacheManager().getSingleFile(_bismillahAudioUrl).catchError((_) {});
   }
 
-  // ✅ NEW: Current ayah ke baad wali ayah background mein cache karo
+  //  Current ayah ke baad wali ayah background mein cache karo
   void _prefetchNextAyah(AyahModel currentAyah) {
     final ayahs = _data?.data?.ayahs ?? [];
     final currentIndex =
