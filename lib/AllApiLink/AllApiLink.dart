@@ -185,7 +185,10 @@ class QuranApiService {
 
 
 static Future<AllHadithModel?> fetchHadithsByChapter(
-    String bookSlug, String chapterNumber) async {
+    String bookSlug,
+     String chapterNumber,
+     
+     ) async {
   try {
     final url = "https://ummahapi.com/api/hadith/$bookSlug/$chapterNumber";
     print("=== HADITH URL: $url ===");
@@ -202,5 +205,39 @@ static Future<AllHadithModel?> fetchHadithsByChapter(
     print("Error fetching hadiths: $e");
     return null;
   }
+}
+// ✅ YEH FUNCTION ADD KARO - start se end tak sari hadiths fetch karta hai
+static Future<List<dynamic>> fetchHadithsByRange(
+  String bookSlug, {
+  required int start,
+  required int end,
+}) async {
+  final List<dynamic> allHadiths = [];
+
+  // 10-10 ka batch banao - sab ek saath fetch ho
+  const batchSize = 10;
+
+  for (int i = start; i <= end; i += batchSize) {
+    final batchEnd = (i + batchSize - 1) > end ? end : (i + batchSize - 1);
+
+    // ✅ Future.wait - parallel requests, fast loading
+    final futures = List.generate(
+      batchEnd - i + 1,
+      (j) => fetchHadithsByChapter(bookSlug, (i + j).toString()),
+    );
+
+    final results = await Future.wait(futures);
+
+    for (final result in results) {
+      if (result != null) {
+        final data = result.hadiths?.data;
+        if (data != null && data.isNotEmpty) {
+          allHadiths.addAll(data);
+        }
+      }
+    }
+  }
+
+  return allHadiths;
 }
 }
