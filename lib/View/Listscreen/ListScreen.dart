@@ -16,7 +16,7 @@ class ListScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-         bottom: PreferredSize(
+    bottom: PreferredSize(
     preferredSize: const Size.fromHeight(0.12),
     child: Container(
       color: const Color(0xFF6B7678),

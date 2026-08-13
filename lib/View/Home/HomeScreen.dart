@@ -448,19 +448,21 @@ class HomeScreen extends StatelessWidget {
                                       // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
-                                          'Current Prayer : ${_getCurrentPrayerName(state.cachedTimings)}',
+                                          'Current Prayer : ${_getCurrentPrayerName(
+                                            state.cachedTimings)}',
                                           style: AppColors().customTextStyle14(
                                             color: Colors.black,
                                           ).copyWith(fontWeight: FontWeight.w600),
                                         ),
                                         Spacer(),
                                         Text(
-                                         'Next Prayer : ${_getUpcomingPrayerName(state.cachedTimings).replaceAll(' (Tomorrow)', '')}',
+                                         'Next Prayer : ${_getUpcomingPrayerName(
+                                          state.cachedTimings).replaceAll(' (Tomorrow)', '')}',
                                             style: AppColors().customTextStyle14(
                                             color: AppColors.primaryColor,
                                             ).copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: getFont(12),
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: getFont(12),
                         ),
                                            ),
                                       ],
@@ -630,7 +632,7 @@ class HomeScreen extends StatelessWidget {
             // Header Row
             Padding(
               padding: EdgeInsets.symmetric(
-                horizontal: getWidth(30),
+                horizontal: getWidth(0),
                 ),
               child: SizedBox(
                 height: getHeight(45),
@@ -645,7 +647,7 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                    SizedBox(width: 10,),
+                    SizedBox(width: getWidth(30),),
                     Expanded(
                       child: Text(
                         'Adhan',
@@ -655,6 +657,7 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+                    SizedBox(width: getWidth(30),),
                     Expanded(
                       child: Text(
                         'Iqama',
@@ -680,7 +683,7 @@ class HomeScreen extends StatelessWidget {
                   final time = state.dynamicPrayerTimes[index];
                   return Padding(
                     padding: EdgeInsets.symmetric(
-                      horizontal: getWidth(30),
+                      horizontal: getWidth(0),
                       vertical: getHeight(6),
                     ),
                     child: Row(
@@ -688,25 +691,33 @@ class HomeScreen extends StatelessWidget {
                         Expanded(
                           child: Text(
                             time['Prayer']!,
-                            style: AppColors().customTextStyle14(
+                            style: AppColors().customTextStyleBold16(
                               color: Colors.white,
-                            ),
+                            ).copyWith(
+                              fontSize: getFont(14),
+                            )
                           ),
                         ),
+                        SizedBox(width: getWidth(30),),
                         Expanded(
                           child: Text(
                             time['Adhun']!,
-                            style: AppColors().customTextStyle14(
+                            style: AppColors().customTextStyleBold16(
                               color: Colors.white,
-                            ),
+                            ).copyWith(
+                              fontSize: getFont(14),
+                            )
                           ),
                         ),
+                        SizedBox(width: getWidth(30),),
                         Expanded(
                           child: Text(
                             time['Iqama']!,
-                            style: AppColors().customTextStyle14(
+                            style: AppColors().customTextStyleBold16(
                               color: Colors.white,
-                            ),
+                            ).copyWith(
+                              fontSize: getFont(14),
+                            )
                           ),
                         ),
                       ],

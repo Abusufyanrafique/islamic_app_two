@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -341,24 +343,34 @@ class _JuzListScreensState extends State<JuzListScreens>
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Expanded(
+                       Expanded(
   flex: 2,
-  child: Container(
-    decoration: BoxDecoration(
-      boxShadow: [
-        BoxShadow(
-          color: const Color(0xFF65D6EC).withOpacity(0.45),
-          offset: const Offset(0, 0),
-          blurRadius: 63,
-          spreadRadius: 0,
+  child: Stack(
+    alignment: Alignment.center,
+    children: [
+      // Glow / Shadow
+      ImageFiltered(
+        imageFilter: ImageFilter.blur(
+          sigmaX: 35,
+          sigmaY: 35,
         ),
-      ],
-    ),
-    child: SvgPicture.asset(
-      "assets/icons/Quranpakiocn.svg",
-      height: getHeight(150),
-      fit: BoxFit.contain,
-    ),
+        child: SvgPicture.asset(
+          "assets/icons/Quranpakiocn.svg",
+          height: getHeight(150),
+          colorFilter: ColorFilter.mode(
+            const Color(0xFF65D6EC).withOpacity(0.65),
+            BlendMode.srcIn,
+          ),
+        ),
+      ),
+
+      // Original Icon
+      SvgPicture.asset(
+        "assets/icons/Quranpakiocn.svg",
+        height: getHeight(150),
+        fit: BoxFit.contain,
+      ),
+    ],
   ),
 ),
                         SizedBox(width: getWidth(10)),

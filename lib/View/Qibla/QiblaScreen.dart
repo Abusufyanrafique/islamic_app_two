@@ -290,7 +290,11 @@ class _QiblaScreenState extends State<QiblaScreen>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.history, size: 14, color: Colors.orange.shade700),
+          Icon(
+            Icons.history, 
+            size: 14, 
+            color: Colors.orange.shade700,
+            ),
           SizedBox(width: getWidth(4)),
           Text(
             'Using saved location • Updating...',
@@ -328,23 +332,13 @@ class _QiblaScreenState extends State<QiblaScreen>
   }
 
   /// COMPASS LOGIC:
-  ///
-  /// RING: -heading se rotate hoti hai
-  ///   → Jab phone North ki taraf ho, N upar ho
-  ///
-  /// NEEDLE (dual mode):
-  ///   [Normal]  → needle fixed rahe screen pe (N upar, S neeche)
-  ///              angle = +heading (ring ke opposite) → net 0
-  ///   [Aligned] → needle Qibla ki taraf snap ho jaye
-  ///              angle = qiblaScreenAngle = (qibla - heading)
+
   ///
   /// QIBLA ICON: hamesha Qibla direction pe
   ///   angle = (qibla - heading)
   Widget _buildCompass(double heading, double qiblaDir, bool isAligned) {
     final double ringAngle = -heading * math.pi / 180;
 
-    // Normal mode: needle fixed (net angle = 0 because ring=-heading, needle=+heading)
-    // Aligned mode: needle points to Qibla direction on screen
     final double qiblaScreenAngle = (qiblaDir - heading) * math.pi / 180;
     final double needleAngle = isAligned
         ? qiblaScreenAngle   // Qibla direction pe snap
@@ -415,8 +409,6 @@ class _QiblaScreenState extends State<QiblaScreen>
                 ),
               ),
 
-              // ── Needle: Normal=Fixed N-S, Aligned=Points to Qibla ──
-              // AnimatedRotation se smooth transition hogi
               AnimatedRotation(
                 turns: needleAngle / (2 * math.pi),
                 duration: isAligned

@@ -13,7 +13,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
-import 'package:timezone/data/latest.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'Model/PrayerCacheModel.dart';
 import 'View/Home/subScreen/AllDuaScreen.dart';
@@ -22,13 +21,13 @@ import 'View/QuranScreen/QuranScreen.dart';
 late QuranAudioHandler audioHandler;
 
 Future<void> main() async {
-
   runZonedGuarded<Future<void>>(() async {
+
+    // 1️⃣ SABSE PEHLE — Flutter binding
     WidgetsFlutterBinding.ensureInitialized();
-    await PrayerAzanService.init();
-     tzdata.initializeTimeZones();
     debugPrint("STEP 1: WidgetsFlutterBinding done");
 
+    // 2️⃣ DOOSRA — Timezone (PrayerAzan se pehle ZARURI)
     try {
       tzdata.initializeTimeZones();
       tz.setLocalLocation(tz.getLocation('Asia/Karachi'));
@@ -38,30 +37,52 @@ Future<void> main() async {
       debugPrint("$st");
     }
 
+    // 3️⃣ TEESRA — Bookmark
+    try {
+      await BookmarkManager.instance.init();
+      debugPrint("STEP 3: BookmarkManager done");
+    } catch (e, st) {
+      debugPrint("‼️ STEP 3 FAILED (bookmark): $e");
+      debugPrint("$st");
+    }
+
+    // 4️⃣ CHAUTHA — Prayer Azan (timezone ke BAAD)
+    try {
+      await PrayerAzanService.init();
+      debugPrint("STEP 4: PrayerAzanService done");
+    } catch (e, st) {
+      debugPrint("‼️ STEP 4 FAILED (prayer azan): $e");
+      debugPrint("$st");
+    }
+
+    // 5️⃣ PAANCHWA — Notification Service
     try {
       await NotificationService1().initNotification();
-      debugPrint("STEP 3: NotificationService1 init done");
+      debugPrint("STEP 5: NotificationService done");
     } catch (e, st) {
-      debugPrint("‼️ STEP 3 FAILED (notification): $e");
+      debugPrint("‼️ STEP 5 FAILED (notification): $e");
       debugPrint("$st");
     }
 
+    // 6️⃣ CHHATA — Supabase
     try {
       await Supabase.initialize(url: appUrl, anonKey: appKey);
-      debugPrint("STEP 4: Supabase init done");
+      debugPrint("STEP 6: Supabase done");
     } catch (e, st) {
-      debugPrint("‼️ STEP 4 FAILED (supabase): $e");
+      debugPrint("‼️ STEP 6 FAILED (supabase): $e");
       debugPrint("$st");
     }
 
+    // 7️⃣ SAATWA — Hive
     try {
       await HiveService.init();
-      debugPrint("STEP 5: HiveService init done");
+      debugPrint("STEP 7: HiveService done");
     } catch (e, st) {
-      debugPrint("‼️ STEP 5 FAILED (hive): $e");
+      debugPrint("‼️ STEP 7 FAILED (hive): $e");
       debugPrint("$st");
     }
 
+    // 8️⃣ AATHWA — Audio Service
     try {
       audioHandler = await AudioService.init(
         builder: () => QuranAudioHandler(),
@@ -74,22 +95,23 @@ Future<void> main() async {
           notificationColor: Color(0xff5BC0BE),
         ),
       );
-      debugPrint("STEP 6: AudioService init done");
+      debugPrint("STEP 8: AudioService done");
     } catch (e, st) {
-      debugPrint("‼️ STEP 6 FAILED (audio_service): $e");
+      debugPrint("‼️ STEP 8 FAILED (audio_service): $e");
       debugPrint("$st");
     }
 
-    debugPrint("STEP 7: calling runApp() now");
+    // 9️⃣ AAKHIR MEIN — App run karo
+    debugPrint("STEP 9: calling runApp() now");
     runApp(
       DevicePreview(
         enabled: !kReleaseMode,
         builder: (context) => const MyApp(),
       ),
     );
-    debugPrint("STEP 8: runApp() called successfully");
+    debugPrint("STEP 10: runApp() called successfully ✅");
+
   }, (error, stackTrace) {
-    // This catches anything that throws OUTSIDE the try/catch blocks above too
     debugPrint("🔥 UNCAUGHT ERROR: $error");
     debugPrint("$stackTrace");
   });
@@ -97,8 +119,10 @@ Future<void> main() async {
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
   static MyAppState of(BuildContext context) =>
       context.findAncestorStateOfType<MyAppState>()!;
+
   @override
   State<MyApp> createState() => MyAppState();
 }
@@ -106,6 +130,7 @@ class MyApp extends StatefulWidget {
 class MyAppState extends State<MyApp> {
   ThemeMode _themeMode = ThemeMode.system;
   final _appLinks = AppLinks();
+
   @override
   void initState() {
     super.initState();
@@ -128,7 +153,6 @@ class MyAppState extends State<MyApp> {
 
   void _navigateToItem(Uri uri) {
     final itemId = uri.queryParameters['id'];
-
     if (itemId != null) {
       navigatorKey.currentState?.push(
         MaterialPageRoute(builder: (_) => AllDuaScreen()),
@@ -138,6 +162,7 @@ class MyAppState extends State<MyApp> {
 
   bool haspermission = false;
   ThemeMode get themeMode => _themeMode;
+
   void changeTheme(ThemeMode themeMode) {
     setState(() {
       _themeMode = themeMode;
@@ -165,6 +190,7 @@ class MyAppState extends State<MyApp> {
   }
 
   final navigatorKey = GlobalKey<NavigatorState>();
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

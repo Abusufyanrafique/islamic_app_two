@@ -873,25 +873,21 @@ class DuaCard extends StatelessWidget {
 
 
 class BookmarkManager {
-  // Singleton
   static final BookmarkManager instance = BookmarkManager._();
   BookmarkManager._();
 
   static const String _prefsKey = 'bookmarked_arabic';
+  SharedPreferences? _prefs; // ← instance save karo, baar baar getInstance mat karo
 
-  // Set of bookmarked arabic texts (unique identifier)
   final ValueNotifier<Set<String>> bookmarkedArabic =
       ValueNotifier<Set<String>>({});
 
   bool _isLoaded = false;
 
-  /// Call this once early in app startup (e.g. in main() before runApp,
-  /// or in initState of your root widget) so saved bookmarks are loaded
-  /// before the UI needs them.
   Future<void> init() async {
     if (_isLoaded) return;
-    final prefs = await SharedPreferences.getInstance();
-    final saved = prefs.getStringList(_prefsKey);
+    _prefs = await SharedPreferences.getInstance(); // ← ek baar lo
+    final saved = _prefs!.getStringList(_prefsKey);
     if (saved != null) {
       bookmarkedArabic.value = saved.toSet();
     }
@@ -899,13 +895,11 @@ class BookmarkManager {
   }
 
   Future<void> _persist(Set<String> data) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(_prefsKey, data.toList());
+    await _prefs!.setStringList(_prefsKey, data.toList()); // ← same instance use karo
   }
 
   bool isBookmarked(String arabic) => bookmarkedArabic.value.contains(arabic);
 
-  /// Toggles bookmark, saves to local storage, and returns whether it is now bookmarked
   bool toggle(String arabic) {
     final updated = Set<String>.from(bookmarkedArabic.value);
     bool isNowBookmarked;
@@ -917,12 +911,10 @@ class BookmarkManager {
       isNowBookmarked = true;
     }
     bookmarkedArabic.value = updated;
-    // Persist immediately so it survives app close/reopen.
     _persist(updated);
     return isNowBookmarked;
   }
 }
-
 class DuasCard extends StatelessWidget {
   final Dua dua;
   const DuasCard({super.key, required this.dua});
