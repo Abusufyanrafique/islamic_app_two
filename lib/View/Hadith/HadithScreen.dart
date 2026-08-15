@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:local_notification/Utils/Constants/AllColors.dart';
 import 'package:local_notification/Utils/Constants/SizeConfig.dart';
 import '../../Model/AlHadithChaptersModel.dart';
-import '../../Model/AlHadithModel.dart';
 import '../../Model/AllHadithModel.dart';
 import '../../Utils/Constants/AllImages.dart';
 import '../../AllApiLink/AllApiLink.dart';
@@ -75,7 +74,7 @@ class HadithScreen extends StatelessWidget {
     ),
   );
 },
-                // HadithBookCard ka index fix karo — id null ho sakta hai
+                
   child: HadithBookCard(
   index: index + 1,   // book.id! ki jagah
   name: book.bookName ?? "",

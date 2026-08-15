@@ -4,6 +4,7 @@ import 'package:local_notification/Utils/Constants/AllColors.dart';
 import 'package:local_notification/Utils/Constants/AllImages.dart';
 import 'package:local_notification/Utils/Constants/AllText.dart';
 import 'package:local_notification/Utils/Constants/SizeConfig.dart';
+import 'package:local_notification/Widgets/BottomNavigationBar.dart';
 import 'package:local_notification/hajj_and_Umrah_guide/dua/dua_screen.dart';
 import 'package:local_notification/hajj_and_Umrah_guide/hajj_retuals/hajj_retuals_screen.dart';
 import 'package:local_notification/hajj_and_Umrah_guide/holy_maps/holy_maps_screen.dart';
@@ -52,7 +53,8 @@ class LabbaikScreen extends StatelessWidget {
                 color: AppColors.black,
               ).copyWith(fontSize: getFont(14)),
             ),
-            Image(image: AssetImage("assets/images/masjid.png")),
+            Image(
+              image: AssetImage("assets/images/masjid.png")),
             
             Padding(
               padding: EdgeInsets.symmetric(
@@ -72,7 +74,7 @@ class LabbaikScreen extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: getHeight(30)),
+            SizedBox(height: getHeight(40)),
           ],
         ),
       ),
@@ -108,7 +110,11 @@ class LabbaikScreen extends StatelessWidget {
         return;
     }
 
-    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+    Navigator.push(
+      context,
+       MaterialPageRoute(
+        builder: (_) => screen),
+        );
   }
 }
 
@@ -124,7 +130,7 @@ class TopBanner extends StatelessWidget {
           clipper: _BannerCurveClipper(),
           child: SizedBox(
             width: double.infinity,
-            height: getHeight(302),
+            height: getHeight(260),
             child: Image.asset(
               "assets/images/image11.png",
               fit: BoxFit.cover,
@@ -137,20 +143,30 @@ class TopBanner extends StatelessWidget {
           top: getHeight(16),
           left: getWidth(16),
           child: SafeArea(
-            child: InkWell(
-              borderRadius: BorderRadius.circular(24),
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                width: getWidth(40),
-                height: getWidth(40),
-                decoration: BoxDecoration(
-                  color: AppColors.white.withOpacity(0.85),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.arrow_back,
-                  size: 18,
-                  color: Colors.black87,
+            child: GestureDetector(
+              onTap:(){
+                 Navigator.pushAndRemoveUntil(
+                 context,
+                 MaterialPageRoute(
+                 builder: (context) => const BottomNavScreen(),
+                 ),
+                 (route) => false,
+  );
+              },
+              child: InkWell(
+                borderRadius: BorderRadius.circular(24),
+                child: Container(
+                  width: getWidth(40),
+                  height: getWidth(40),
+                  decoration: BoxDecoration(
+                    color: AppColors.white.withOpacity(0.85),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.arrow_back,
+                    size: 18,
+                    color: Colors.black87,
+                  ),
                 ),
               ),
             ),
@@ -202,9 +218,9 @@ class MenuCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: getWidth(166),
-        height: getHeight(164),
+        height: getHeight(155),
         margin: EdgeInsets.only(
-          top: getHeight(22),
+          top: getHeight(20),
           ), 
         padding: EdgeInsets.only(
           left: getWidth(16),

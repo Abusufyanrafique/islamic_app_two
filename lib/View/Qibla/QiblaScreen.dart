@@ -347,20 +347,14 @@ class _QiblaScreenState extends State<QiblaScreen> with RouteAware {
       child: Scaffold(
         body: Stack(
           children: [
-            Positioned.fill(child: CustomPaint(painter: _BgPatternPainter())),
+            Positioned.fill(child: CustomPaint(
+              painter: _BgPatternPainter()),
+              ),
 
             BlocBuilder<QiblaCubit, QiblaState>(
               builder: (context, state) {
                 return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const HajjUmrahSplashScreen(),
-                      ),
-                    );
-                  },
-
+                  onTap: () {},
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
 
@@ -404,26 +398,30 @@ class _QiblaScreenState extends State<QiblaScreen> with RouteAware {
 
       decoration: BoxDecoration(
         color: Colors.orange.shade50,
-
         borderRadius: BorderRadius.circular(20),
-
-        border: Border.all(color: Colors.orange.shade200),
+        border: Border.all(
+          color: Colors.orange.shade200,
+          ),
       ),
 
       child: Row(
         mainAxisSize: MainAxisSize.min,
 
         children: [
-          Icon(Icons.history, size: 14, color: Colors.orange.shade700),
+          Icon(
+            Icons.history, 
+            size: 14, 
+            color: Colors.orange.shade700,
+            ),
 
           SizedBox(width: getWidth(4)),
 
           Text(
             'Using saved location • Updating...',
-            style: TextStyle(
-              fontSize: getFont(11),
+            style:AppColors().customTextStyle12().copyWith(
+               fontSize: getFont(11),
               color: Colors.orange.shade800,
-            ),
+            )
           ),
         ],
       ),
@@ -708,7 +706,11 @@ class _QiblaScreenState extends State<QiblaScreen> with RouteAware {
               ),
 
               child: Center(
-                child: Text('🕋', style: TextStyle(fontSize: getFont(20))),
+                child: Text(
+                  '🕋', 
+                  style: TextStyle(
+                    fontSize: getFont(20),
+                    )),
               ),
             ),
           ],
@@ -741,8 +743,11 @@ class _QiblaScreenState extends State<QiblaScreen> with RouteAware {
           "Device's angle to Qibla",
 
           style: AppColors()
-              .customTextStyleRegular10(color: AppColors.black)
-              .copyWith(fontSize: getFont(14)),
+              .customTextStyleRegular10(
+                color: AppColors.black)
+              .copyWith(
+                fontSize: getFont(14),
+                ),
         ),
       ],
     );
@@ -775,9 +780,13 @@ class _QiblaScreenState extends State<QiblaScreen> with RouteAware {
 
       height: getHeight(50),
 
-      margin: EdgeInsets.symmetric(horizontal: getWidth(36)),
+      margin: EdgeInsets.symmetric(
+        horizontal: getWidth(36),
+        ),
 
-      padding: EdgeInsets.symmetric(vertical: getHeight(18)),
+      padding: EdgeInsets.symmetric(
+        vertical: getHeight(18),
+        ),
 
       decoration: BoxDecoration(
         color: onTarget
@@ -787,13 +796,13 @@ class _QiblaScreenState extends State<QiblaScreen> with RouteAware {
         borderRadius: BorderRadius.circular(20),
       ),
 
-      child: Text(
-        text,
-
-        textAlign: TextAlign.center,
-
-        style: AppColors()
-            .customTextStyleRegular10(color: AppColors.black)
+          child: Text(
+           text,
+            textAlign: TextAlign.center,
+            style: AppColors()
+            .customTextStyleRegular10(
+              color: AppColors.black,
+              )
             .copyWith(fontSize: getFont(12)),
       ),
     );
@@ -821,7 +830,9 @@ class _QiblaScreenState extends State<QiblaScreen> with RouteAware {
           fit: BoxFit.cover,
 
           errorBuilder: (context, error, stackTrace) {
-            return const Center(child: Text('Error loading image'));
+            return const Center(
+              child: Text('Error loading image'),
+              );
           },
         ),
       ),
@@ -839,7 +850,11 @@ class _QiblaScreenState extends State<QiblaScreen> with RouteAware {
           mainAxisAlignment: MainAxisAlignment.center,
 
           children: [
-            Text('⚠️', style: TextStyle(fontSize: getFont(48))),
+            Text(
+              '⚠️', 
+              style: TextStyle(
+                fontSize: getFont(48),
+                )),
 
             SizedBox(height: getHeight(16)),
 

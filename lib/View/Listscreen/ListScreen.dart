@@ -3,6 +3,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:local_notification/Utils/Constants/AllImages.dart';
 import 'package:local_notification/Utils/Constants/SizeConfig.dart';
 import 'package:local_notification/View/Islamic_Calander/Islamic_Calander.dart';
+import 'package:local_notification/View/QuranScreen/QuranScreen.dart';
+import 'package:local_notification/View/privacy_policy/privacy_policy_screen.dart';
 import 'package:local_notification/hajj_and_Umrah_guide/hajj_umrah_splash_screen.dart';
 import '../../Utils/Constants/AllColors.dart';
 
@@ -105,18 +107,25 @@ class ListScreen extends StatelessWidget {
                       onTap: () {
                         print("Fajr tapped!");
                         // Or navigate to another screen
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => IslamicCalendar()));
+                        Navigator.push(
+                          context, 
+                          MaterialPageRoute(
+                            builder: (_) => IslamicCalendar()),
+                            );
                       },
                     ),
-                    // AllListButton(
-                    //   "Al Quran",
-                    //   AllImages.quranic,
-                    //   onTap: () {
-                    //     print("Fajr tapped!");
-                    //     // Or navigate to another screen
-                    //     // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
-                    //   },
-                    // ),
+                    AllListButton(
+                      "Al Quran",
+                      AllImages.quranic,
+                      onTap: () {
+                        print("Fajr tapped!");
+                        // Or navigate to another screen
+                        Navigator.push(
+                          context, MaterialPageRoute(
+                            builder: (_) => JuzListScreens()),
+                            );
+                      },
+                    ),
                     // AllListButton(
                     //   "Hadith",
                     //   AllImages.hadith,
@@ -196,15 +205,15 @@ class ListScreen extends StatelessWidget {
                     //     // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
                     //   },
                     // ),
-                    // AllListButton(
-                    //   "Islamic Video",
-                    //   AllImages.videoicon,
-                    //   onTap: () {
-                    //     print("Fajr tapped!");
-                    //     // Or navigate to another screen
-                    //     // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
-                    //   },
-                    // ),
+                    AllListButton(
+                      "Privacy Policy",
+                      AllImages.videoicon,
+                      onTap: () {
+                        print("Fajr tapped!");
+                        // Or navigate to another screen
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => PrivacyPolicyScreen()));
+                      },
+                    ),
                   ],
                 ),
               ),

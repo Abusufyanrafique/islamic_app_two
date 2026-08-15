@@ -1,5 +1,4 @@
-import 'dart:math';
-import 'package:bloc/bloc.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -369,7 +368,7 @@ class _AllDuaCardState extends State<AllDuaCard> {
 
     if (wasSpeakingThisDua && audioJustStopped && isRandomMode) {
       setState(() {
-        // ✅ Sequential: agla index, list khatam hote hi wapis 0 se
+       
         _currentIndex = (_currentIndex + 1) % namesList.length;
         selectedDua = namesList[_currentIndex];
       });
