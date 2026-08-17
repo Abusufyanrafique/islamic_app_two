@@ -6,97 +6,49 @@ import 'package:local_notification/View/Islamic_Calander/Islamic_Calander.dart';
 import 'package:local_notification/View/QuranScreen/QuranScreen.dart';
 import 'package:local_notification/View/privacy_policy/privacy_policy_screen.dart';
 import 'package:local_notification/hajj_and_Umrah_guide/hajj_umrah_splash_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../Utils/Constants/AllColors.dart';
-
-
 
 class ListScreen extends StatelessWidget {
   const ListScreen({super.key});
+
+  Future<void> _openYouTubeVideo() async {
+    final Uri url =
+        Uri.parse('https://www.youtube.com/watch?v=m9-Umj3aL1I');
+    if (!await launchUrl(
+      url,
+      mode: LaunchMode.externalApplication,
+    )) {
+      debugPrint('YouTube URL open nahi hua');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-    bottom: PreferredSize(
-    preferredSize: const Size.fromHeight(0.12),
-    child: Container(
-      color: const Color(0xFF6B7678),
-      height: 0.12,
-    ),
-  ),
-        title: Text(
-          "List",
-          style:AppColors().customTextStyleBold16().copyWith(
-            fontSize: getFont(16),
-          )
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(0.12),
+          child: Container(
+            color: const Color(0xFF6B7678),
+            height: 0.12,
           ),
         ),
+        title: Text(
+          "List",
+          style: AppColors().customTextStyleBold16().copyWith(
+                fontSize: getFont(16),
+              ),
+        ),
+      ),
       body: Padding(
-        padding:  EdgeInsets.symmetric(
+        padding: EdgeInsets.symmetric(
           horizontal: getWidth(12),
-          ),
+        ),
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // CustomContainer(
-              //   "Profile",
-              //   Column(
-              //     children: [
-              //       AllListButton(
-              //         "Profile",
-              //         "assets/icons/profile.svg",
-              //         onTap: () {
-              //           Navigator.push(
-              //             context,
-              //             MaterialPageRoute(
-              //                 builder: (context) =>
-              //                     ProfileScreen()
-              //             ),
-              //           );
-              //           print("Fajr tapped!");
-              //           // Or navigate to another screen
-              //           // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
-              //         },
-              //       ),
-              //       // AllListButton(
-              //       //   "My Premium",
-              //       //   AllImages.premium,
-              //       //   onTap: () {
-
-              //       //     print("Fajr tapped!");
-              //       //     // Or navigate to another screen
-              //       //     // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
-              //       //   },
-              //       // ),
-              //     ],
-              //   ),
-              // ),
-              // CustomContainer(
-              //   "Communication Prefrences",
-              //   Column(
-              //     children: [
-              //       // AllListButton(
-              //       //   "Free Newsletter",
-              //       //   AllImages.newsletter,
-              //       //   onTap: () {
-              //       //     print("Fajr tapped!");
-              //       //     // Or navigate to another screen
-              //       //     // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
-              //       //   },
-              //       // ),
-              //       // AllListButton(
-              //       //   "Push Notification",
-              //       //   AllImages.alarm,
-              //       //   onTap: () {
-              //       //     print("Fajr tapped!");
-              //       //     // Or navigate to another screen
-              //       //     // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
-              //       //   },
-              //       // ),
-              //     ],
-              //   ),
-              // ),
               CustomContainer(
                 "Feature Settings",
                 Column(
@@ -105,145 +57,63 @@ class ListScreen extends StatelessWidget {
                       "Islamic Calendar",
                       AllImages.calender,
                       onTap: () {
-                        print("Fajr tapped!");
-                        // Or navigate to another screen
                         Navigator.push(
-                          context, 
+                          context,
                           MaterialPageRoute(
-                            builder: (_) => IslamicCalendar()),
-                            );
+                              builder: (_) => IslamicCalendar()),
+                        );
                       },
                     ),
                     AllListButton(
                       "Al Quran",
                       AllImages.quranic,
                       onTap: () {
-                        print("Fajr tapped!");
-                        // Or navigate to another screen
                         Navigator.push(
-                          context, MaterialPageRoute(
-                            builder: (_) => JuzListScreens()),
-                            );
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => JuzListScreens()),
+                        );
                       },
                     ),
-                    // AllListButton(
-                    //   "Hadith",
-                    //   AllImages.hadith,
-                    //   onTap: () {
-                    //     Navigator.push(
-                    //         context,
-                    //         MaterialPageRoute(
-                    //             builder: (context) => ChatScreen(
-                    //               muftiName: "Ahmad",
-                    //               muftiStatus: "Online",
-                    //               muftiImage: "",
-                    //             )
-                    //           // ImamRegistrationScreen()
-                    //         ));
-                    //     print("Fajr tapped!");
-                    //     // Or navigate to another screen
-                    //     // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
-                    //   },
-                    // ),
-                    // AllListButton(
-                    //   "Tasbih",
-                    //   AllImages.tasbih,
-                    //   onTap: () {
+                    AllListButton(
+                      "Labbaik",
+                      AllImages.tasbih,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const HajjUmrahSplashScreen(),
+                          ),
+                        );
+                      },
+                    ),
 
-                    //     Navigator.push(
-                    //         context,
-                    //         MaterialPageRoute(
-                    //             builder: (context) => AppointmentRequest(muftiId: 3,)
-                    //           // ImamRegistrationScreen()
-                    //         ));
-                    //     print("Fajr tapped!");
-                    //     // Or navigate to another screen
-                    //     // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
-                    //   },
-                    // ),
-
-               AllListButton(
-               "Labbaik",
-               AllImages.tasbih,
-               onTap: () {
-               Navigator.push(
-               context,
-               MaterialPageRoute(
-               builder: (context) => const HajjUmrahSplashScreen(),
-      ),
-    );
-  },
-),
-                    // AllListButton(
-                    //   "Register as Hafiz",
-                    //   AllImages.register,
-                    //   onTap: () {
-                    //   Navigator.push(
-                    //       context,
-                    //       MaterialPageRoute(
-                    //           builder: (context) =>
-                    //               ImamRegistrationScreen()
-                    //       ));
-                    //     print("Fajr tapped!");
-                    //     // Or navigate to another screen
-                    //     // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
-                    //   },
-                    // ),
-                    // AllListButton(
-                    //   "Already Reciter",
-                    //   AllImages.reciter,
-                    //   onTap: () {
-
-                    //     Navigator.push(
-                    //         context,
-                    //         MaterialPageRoute(
-                    //             builder: (context) =>
-                    //                 Alreadyreciter()
-                    //         ));
-                    //     print("Fajr tapped!");
-                    //     // Or navigate to another screen
-                    //     // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
-                    //   },
-                    // ),
+                    // ✅ Privacy Policy — Flutter built-in shield icon
                     AllListButton(
                       "Privacy Policy",
+                      "",
+                      iconData: Icons.privacy_tip_outlined,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => PrivacyPolicyScreen()),
+                        );
+                      },
+                    ),
+
+                    // ✅ Live — YouTube open karta hai
+                    AllListButton(
+                      "Live",
                       AllImages.videoicon,
                       onTap: () {
-                        print("Fajr tapped!");
-                        // Or navigate to another screen
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => PrivacyPolicyScreen()));
+                        _openYouTubeVideo();
                       },
                     ),
                   ],
                 ),
               ),
-              // CustomContainer(
-              //   "App Settings",
-              //   Column(
-              //     children: [
-              //       // AllListButton(
-              //       //   "App Language",
-              //       //   AllImages.language,
-              //       //   onTap: () {
-              //       //     print("Fajr tapped!");
-              //       //     // Or navigate to another screen
-              //       //     // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
-              //       //   },
-              //       // ),
-              //       // AllListButton(
-              //       //   "System Setting",
-              //       //   AllImages.settingIcon,
-              //       //   onTap: () {
-              //       //     print("Fajr tapped!");
-              //       //     // Or navigate to another screen
-              //       //     // Navigator.push(context, MaterialPageRoute(builder: (_) => FajrScreen()));
-              //       //   },
-              //       // ),
-              //     ],
-              //   ),
-              // ),
-
-
             ],
           ),
         ),
@@ -251,63 +121,68 @@ class ListScreen extends StatelessWidget {
     );
   }
 
+  /// [iconData] pass karo toh Flutter ka built-in icon use hoga
+  /// warna SVG asset use hoga
   Widget AllListButton(
     String title,
-     String image, {
-      VoidCallback? onTap
-      }) {
+    String image, {
+    VoidCallback? onTap,
+    IconData? iconData, // ✅ optional Flutter icon
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         height: getHeight(50),
-        margin:  EdgeInsets.symmetric(vertical: getHeight(8),),
-        padding:  EdgeInsets.symmetric(
-          horizontal: getWidth(12), 
-          vertical: getHeight(2)),
+        margin: EdgeInsets.symmetric(vertical: getHeight(8)),
+        padding: EdgeInsets.symmetric(
+            horizontal: getWidth(12), vertical: getHeight(2)),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(6),
           boxShadow: [
-    BoxShadow(
-      color: Colors.black.withOpacity(0.25),
-      offset: const Offset(0, 1),
-      blurRadius: 2,
-      spreadRadius: 0,
-    ),
-  ],
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              offset: const Offset(0, 1),
+              blurRadius: 2,
+              spreadRadius: 0,
+            ),
+          ],
         ),
         child: Row(
           children: [
-            /// Left Image
+            /// ✅ iconData ho toh Flutter Icon, warna SVG
             CircleAvatar(
               radius: 14,
               backgroundColor: Colors.grey.shade100,
-              child: SvgPicture.asset(
-                image,
-                width: getWidth(14),
-                height: getHeight(14),
-                color: Colors.black,
-                fit: BoxFit.contain,
-              ),
+              child: iconData != null
+                  ? Icon(
+                      iconData,
+                      size: getWidth(18),
+                      color: Colors.black,
+                    )
+                  : SvgPicture.asset(
+                      image,
+                      width: getWidth(14),
+                      height: getHeight(14),
+                      color: Colors.black,
+                      fit: BoxFit.contain,
+                    ),
             ),
-             SizedBox(width: getWidth(12)),
-
-            /// Title
+            SizedBox(width: getWidth(12)),
             Expanded(
               child: Text(
                 title,
                 style: AppColors().customTextStyle12(
                   color: AppColors.black,
-                  ),
+                ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-
             SvgPicture.asset(
-            'assets/icons/arrowforward.svg',
-            width: getWidth(20),
-            height: getHeight(20),
-),
+              'assets/icons/arrowforward.svg',
+              width: getWidth(20),
+              height: getHeight(20),
+            ),
           ],
         ),
       ),
@@ -315,34 +190,32 @@ class ListScreen extends StatelessWidget {
   }
 
   Widget CustomContainer(
-    String title, 
+    String title,
     Widget widget,
-    ) {
+  ) {
     return Container(
-
-      margin:  EdgeInsets.symmetric(vertical: getHeight(8),),
-      padding:  EdgeInsets.symmetric(
-        horizontal: getWidth(12), 
-        vertical: getHeight(10)),
+      margin: EdgeInsets.symmetric(vertical: getHeight(8)),
+      padding: EdgeInsets.symmetric(
+          horizontal: getWidth(12), vertical: getHeight(10)),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(6),
-       boxShadow: [
-    BoxShadow(
-      color: Colors.black.withOpacity(0.25),
-      offset: const Offset(0, 1),
-      blurRadius: 4,
-      spreadRadius: 0,
-    ),
-  ],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            offset: const Offset(0, 1),
+            blurRadius: 4,
+            spreadRadius: 0,
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, 
-          style: AppColors().customTextStyle14(
-            fontWeight:FontWeight.w500,
-            )),
+          Text(title,
+              style: AppColors().customTextStyle14(
+                fontWeight: FontWeight.w500,
+              )),
           widget,
         ],
       ),

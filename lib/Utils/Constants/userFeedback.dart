@@ -10,7 +10,9 @@ import 'SizeConfig.dart';
 // ─── Toast Helper ──────────────────────────────────────────────────
 OverlayEntry? _currentToastEntry;
 
-void _showAppToast(BuildContext context, String message, _ToastType type) {
+void _showAppToast(
+  BuildContext context,
+   String message, _ToastType type) {
   _currentToastEntry?.remove();
 
   late OverlayEntry entry;
@@ -21,7 +23,10 @@ void _showAppToast(BuildContext context, String message, _ToastType type) {
       right: 0,
       child: Material(
         color: Colors.transparent,
-        child: _AppToast(message: message, type: type),
+        child: _AppToast(
+          message: message,
+           type: type,
+           ),
       ),
     ),
   );
@@ -279,7 +284,9 @@ Widget tabbutton(String title) {
     decoration: BoxDecoration(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(100),
-        border: Border.all(color: Colors.white, width: 1)),
+        border: Border.all(
+          color: Colors.white,
+           width: 1)),
     alignment: Alignment.center,
     child: Text(
       title,
