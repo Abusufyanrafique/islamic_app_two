@@ -479,9 +479,12 @@ class PrayerTimeScreen extends StatelessWidget {
                                 .read<PrayerTimeCubit>()
                                 .onSwitchChanged(name, val, rawTime);
                            if (val) {
-                          showSuccessToast(context, '✅ $name azan scheduled');
+                          showInfoToast(context, '✅ $name azan scheduled');
                             } else {
-                          showErrorToast(context, '🔕 $name azan cancelled');
+                            showInfoToast(
+                              context, '🔕 $name azan cancelled',
+                              
+                              );
 }
                           },
                         );
@@ -496,7 +499,22 @@ class PrayerTimeScreen extends StatelessWidget {
       ),
     );
   }
-
+void showInfoToast1(BuildContext context, String message) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(
+        message,
+        style: const TextStyle(color: Colors.white),
+      ),
+      backgroundColor: Colors.grey.shade700,
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 2),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+    ),
+  );
+}
   Widget _buildShimmerEffect(double width) {
     return Scaffold(
       appBar: AppBar(

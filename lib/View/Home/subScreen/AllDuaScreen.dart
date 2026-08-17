@@ -238,7 +238,7 @@ final List<Map<String, dynamic>> duasJson = [
     "urdu": "اے اللہ! مجھے ہدایت دے",
     "english": "O Allah, guide me",
     "reference": "📖 Hadith — Sahih Muslim",
-    "audio": "audio/dua_17.mp3",
+    "audio": "ringtone/Arabic22.mp3",
   },
   {
     "index": 18,
@@ -528,8 +528,6 @@ class _AllDuaCardState extends State<AllDuaCard> {
                           child: SvgPicture.asset('assets/icons/Group.svg'),
                         ),
                         SizedBox(width: getWidth(10)),
-
-                        // ✅ Play/Stop button — ab local audio file chalti hai
                         ValueListenableBuilder<String?>(
                           valueListenable:
                               DuaAudioService.instance.currentlyPlaying,

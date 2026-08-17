@@ -80,13 +80,20 @@ class _AppToastState extends State<_AppToast>
       child: FadeTransition(
         opacity: _fade,
         child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          margin:  EdgeInsets.symmetric(
+            horizontal: getWidth(20), 
+            vertical: getHeight(12),
+            ),
+          padding:  EdgeInsets.symmetric(
+            horizontal: getWidth(16),
+             vertical: getHeight(14),
+             ),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-                color: cfg.accentColor.withOpacity(0.35), width: 1.2),
+                color: cfg.accentColor.withOpacity(0.35),
+                 width: 1.2),
             boxShadow: [
               BoxShadow(
                 color: cfg.accentColor.withOpacity(0.12),
@@ -104,15 +111,19 @@ class _AppToastState extends State<_AppToast>
             children: [
               // Icon
               Container(
-                height: 40,
-                width: 40,
+                height: getHeight(42),
+                width: getWidth(42),
                 decoration: BoxDecoration(
                   color: cfg.accentColor.withOpacity(0.10),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(cfg.icon, color: cfg.accentColor, size: 20),
+                child: Icon(
+                  cfg.icon, 
+                  color: cfg.accentColor,
+                   size: 20,
+                   ),
               ),
-              const SizedBox(width: 12),
+               SizedBox(width: getWidth(12)),
               // Text
               Expanded(
                 child: Column(
@@ -121,29 +132,29 @@ class _AppToastState extends State<_AppToast>
                   children: [
                     Text(
                       cfg.label,
-                      style: TextStyle(
-                        fontSize: 13,
+                      style:AppColors().customTextStyleBold16().copyWith(
+                         fontSize: getFont(16),
                         fontWeight: FontWeight.w700,
                         color: cfg.accentColor,
                         letterSpacing: 0.2,
-                      ),
+                      )
                     ),
-                    const SizedBox(height: 3),
+                     SizedBox(height: getHeight(3)),
                     Text(
                       widget.message,
-                      style: const TextStyle(
-                        fontSize: 12,
+                      style:AppColors().customTextStyle14().copyWith(
+                         fontSize: getFont(14),
                         color: Color(0xff4A4A4A),
                         height: 1.4,
-                      ),
+                      )
                     ),
                   ],
                 ),
               ),
               // Right bar
               Container(
-                height: 34,
-                width: 3.5,
+                height: getHeight(36),
+                width: getWidth(4),
                 decoration: BoxDecoration(
                   color: cfg.accentColor,
                   borderRadius: BorderRadius.circular(10),
@@ -207,8 +218,8 @@ OverlayEntry buildLoadingOverlay() {
       color: Colors.black45,
       child: Center(
         child: Container(
-          width: 80,
-          height: 80,
+          width: getWidth(80),
+          height: getHeight(80),
           decoration: BoxDecoration(
             color: AppColors.lightBackgroundColor,
             borderRadius: BorderRadius.circular(12),
@@ -226,7 +237,9 @@ OverlayEntry buildLoadingOverlay() {
 
 Widget loadingIndicator() {
   return const Center(
-    child: CircularProgressIndicator(color: AppColors.primaryColor),
+    child: CircularProgressIndicator(
+      color: AppColors.primaryColor,
+      ),
   );
 }
 
@@ -241,12 +254,18 @@ Widget bottomButton(
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        SvgPicture.asset(icon, height: 20, width: 20),
-        const SizedBox(width: 8),
+        SvgPicture.asset(
+          icon, 
+          height: getHeight(22),
+           width: getWidth(22),
+           ),
+         SizedBox(width: getWidth(8)),
         Text(
           title,
           style: const TextStyle(
-              fontWeight: FontWeight.w400, fontSize: 16, color: Colors.black),
+              fontWeight: FontWeight.w400,
+               fontSize: 16, 
+               color: Colors.black),
         )
       ],
     ),
