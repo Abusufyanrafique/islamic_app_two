@@ -1,9 +1,22 @@
+// ============================================================
+// PUBSPEC.YAML MEIN YE ADD KARO:
+// dependencies:
+//   audioplayers: ^5.2.1
+//
+// assets:
+//   - assets/audio/
+//
+// Aur apni audio files yahan rakhna:
+//   assets/audio/dua_1.mp3
+//   assets/audio/dua_2.mp3
+//   ... dua_20.mp3 tak
+// ============================================================
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:local_notification/services/audio_service/audio_service.dart';
+import 'package:audioplayers/audioplayers.dart'; 
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../Utils/Constants/AllColors.dart';
@@ -11,17 +24,69 @@ import '../../../Utils/Constants/AllImages.dart';
 import '../../../Utils/Constants/SizeConfig.dart';
 import 'SubjectWiseDuaScreen.dart';
 
+// ============================================================
+// ✅ DuaAudioService — TTS ki jagah local audio files
+
+class DuaAudioService {
+  static final DuaAudioService instance = DuaAudioService._internal();
+
+  DuaAudioService._internal() {
+    // Jab audio khatam ho jaye to currentlyPlaying null kar do
+    _player.onPlayerComplete.listen((_) {
+      currentlyPlaying.value = null;
+    });
+  }
+
+  final AudioPlayer _player = AudioPlayer();
+  final ValueNotifier<String?> currentlyPlaying = ValueNotifier<String?>(null);
+
+  Future<void> playOrToggle(String duaId, String audioPath) async {
+    if (currentlyPlaying.value == duaId) {
+      // Pehle se chal raha hai — stop karo
+      await _player.stop();
+      currentlyPlaying.value = null;
+      return;
+    }
+
+    // Pehle jo chal raha tha use band karo
+    await _player.stop();
+    currentlyPlaying.value = duaId;
+
+    try {
+      // assets/audio/ folder se file chalao
+      await _player.play(AssetSource(audioPath));
+    } catch (e) {
+      debugPrint('Audio play error: $e');
+      currentlyPlaying.value = null;
+    }
+  }
+
+  Future<void> stop() async {
+    await _player.stop();
+    currentlyPlaying.value = null;
+  }
+
+  void dispose() {
+    _player.dispose();
+  }
+}
+
+// ============================================================
+// DuaModel — audioPath field add hua
+// ============================================================
 class DuaModel {
   final String arabic;
   final String urdu;
   final String english;
   final String reference;
+  final String audioPath; 
 
   DuaModel({
     required this.arabic,
     required this.urdu,
     required this.english,
     required this.reference,
+    required this.audioPath,
   });
 
   factory DuaModel.fromJson(Map<String, dynamic> json) {
@@ -30,27 +95,30 @@ class DuaModel {
       urdu: json['urdu'] ?? "",
       english: json['english'] ?? "",
       reference: json['reference'] ?? "",
+      audioPath: json['audio'] ?? "",
     );
   }
 }
 
-final List<DuaModel> namesList = duasJson
-    .map((e) => DuaModel.fromJson(e))
-    .toList();
+// ============================================================
+// Duas ka data — har entry mein "audio" key add hua
+
 final List<Map<String, dynamic>> duasJson = [
   {
-    "index": 1,
-    "arabic": "رَبِّ زِدْنِي عِلْمًا",
-    "urdu": "اے میرے رب! میرے علم میں اضافہ فرما",
-    "english": "O my Lord, increase my knowledge",
-    "reference": "📖 Surah Taha (20:114)",
-  },
+  "index": 1,
+  "arabic": "رَبِّ زِدْنِي عِلْمًا",
+  "urdu": "اے میرے رب! میرے علم میں اضافہ فرما",
+  "english": "O my Lord, increase my knowledge",
+  "reference": "📖 Surah Taha (20:114)",
+  "audio": "ringtone/Arabic1.mp3",  
+},
   {
     "index": 2,
     "arabic": "رَبِّ اغْفِرْ لِي",
     "urdu": "اے میرے رب! مجھے بخش دے",
     "english": "O my Lord, forgive me",
     "reference": "📖 Surah Nuh (71:28)",
+    "audio": "ringtone/Arabic2.mp3",
   },
   {
     "index": 3,
@@ -58,6 +126,7 @@ final List<Map<String, dynamic>> duasJson = [
     "urdu": "اے اللہ! مجھ پر رحم فرما",
     "english": "O Allah, have mercy on me",
     "reference": "📖 Hadith — Sahih Muslim",
+    "audio": "ringtone/Arabic3.mp3",
   },
   {
     "index": 4,
@@ -65,6 +134,7 @@ final List<Map<String, dynamic>> duasJson = [
     "urdu": "اللہ میرے لیے کافی ہے",
     "english": "Allah is enough for me",
     "reference": "📖 Surah Tawbah (9:129)",
+    "audio": "ringtone/Arabic4.mp3",
   },
   {
     "index": 5,
@@ -72,6 +142,7 @@ final List<Map<String, dynamic>> duasJson = [
     "urdu": "اے میرے رب! مجھے ہدایت دے",
     "english": "O my Lord, guide me",
     "reference": "📖 Surah Al-Fatihah (1:6)",
+    "audio": "ringtone/Arabic5.mp3",
   },
   {
     "index": 6,
@@ -79,6 +150,7 @@ final List<Map<String, dynamic>> duasJson = [
     "urdu": "اے میرے رب! میری مدد فرما",
     "english": "O my Lord, help me",
     "reference": "📖 Surah Al-Qasas (28:21)",
+    "audio": "ringtone/Arabic6.mp3",
   },
   {
     "index": 7,
@@ -86,6 +158,7 @@ final List<Map<String, dynamic>> duasJson = [
     "urdu": "اے میرے رب! آسانی عطا فرما",
     "english": "O my Lord, make things easy for me",
     "reference": "📖 Surah Taha (20:26)",
+    "audio": "ringtone/Arabic7.mp3",
   },
   {
     "index": 8,
@@ -93,6 +166,7 @@ final List<Map<String, dynamic>> duasJson = [
     "urdu": "اے میرے رب! میری عبادت قبول فرما",
     "english": "O my Lord, accept from me",
     "reference": "📖 Surah Al-Baqarah (2:127)",
+    "audio": "ringtone/Arabic8.mp3",
   },
   {
     "index": 9,
@@ -100,6 +174,7 @@ final List<Map<String, dynamic>> duasJson = [
     "urdu": "اے میرے رب! میرا دل سیدھا رکھ",
     "english": "O my Lord, do not let my heart go astray",
     "reference": "📖 Surah Aal-e-Imran (3:8)",
+    "audio": "ringtone/Arabic9.mp3",
   },
   {
     "index": 10,
@@ -107,6 +182,7 @@ final List<Map<String, dynamic>> duasJson = [
     "urdu": "اے میرے رب! میرے والدین پر رحم فرما",
     "english": "O my Lord, have mercy on my parents",
     "reference": "📖 Surah Al-Isra (17:24)",
+    "audio": "ringtone/Arabic10.mp3",
   },
   {
     "index": 11,
@@ -114,6 +190,7 @@ final List<Map<String, dynamic>> duasJson = [
     "urdu": "اے میرے رب! میں تیری پناہ مانگتا ہوں",
     "english": "O my Lord, I seek refuge in You",
     "reference": "📖 Surah Al-Muminun (23:97-98)",
+    "audio": "ringtone/Arabic11.mp3",
   },
   {
     "index": 12,
@@ -121,6 +198,7 @@ final List<Map<String, dynamic>> duasJson = [
     "urdu": "اے میرے رب! مجھے نجات دے",
     "english": "O my Lord, save me",
     "reference": "📖 Surah Al-Anbiya (21:87)",
+    "audio": "ringtone/Arabic12.mp3",
   },
   {
     "index": 13,
@@ -128,6 +206,7 @@ final List<Map<String, dynamic>> duasJson = [
     "urdu": "اے میرے رب! میرا سینہ کھول دے",
     "english": "O my Lord, open my chest for me",
     "reference": "📖 Surah Taha (20:25)",
+    "audio": "ringtone/Arabic13.mp3",
   },
   {
     "index": 14,
@@ -135,6 +214,7 @@ final List<Map<String, dynamic>> duasJson = [
     "urdu": "اے میرے رب! مجھے سلامتی دے",
     "english": "O my Lord, grant me peace and safety",
     "reference": "📖 Hadith — Abu Dawud",
+    "audio": "ringtone/Arabic14.mp3",
   },
   {
     "index": 15,
@@ -142,6 +222,7 @@ final List<Map<String, dynamic>> duasJson = [
     "urdu": "اے میرے رب! مجھے نماز قائم کرنے والا بنا",
     "english": "O my Lord, make me one who establishes prayer",
     "reference": "📖 Surah Ibrahim (14:40)",
+    "audio": "ringtone/Arabic15.mp3",
   },
   {
     "index": 16,
@@ -149,6 +230,7 @@ final List<Map<String, dynamic>> duasJson = [
     "urdu": "اے اللہ! مجھے بخش دے",
     "english": "O Allah, forgive me",
     "reference": "📖 Hadith — Sahih Bukhari",
+    "audio": "ringtone/Arabic16.mp3",
   },
   {
     "index": 17,
@@ -156,6 +238,7 @@ final List<Map<String, dynamic>> duasJson = [
     "urdu": "اے اللہ! مجھے ہدایت دے",
     "english": "O Allah, guide me",
     "reference": "📖 Hadith — Sahih Muslim",
+    "audio": "audio/dua_17.mp3",
   },
   {
     "index": 18,
@@ -163,6 +246,7 @@ final List<Map<String, dynamic>> duasJson = [
     "urdu": "اے اللہ! مجھے صحت دے",
     "english": "O Allah, grant me good health",
     "reference": "📖 Hadith — Tirmidhi",
+    "audio": "ringtone/Arabic17.mp3",
   },
   {
     "index": 19,
@@ -170,6 +254,7 @@ final List<Map<String, dynamic>> duasJson = [
     "urdu": "اے اللہ! مجھے رزق عطا فرما",
     "english": "O Allah, provide me with sustenance",
     "reference": "📖 Hadith — Ibn Majah",
+    "audio": "ringtone/Arabic18.mp3",
   },
   {
     "index": 20,
@@ -177,10 +262,16 @@ final List<Map<String, dynamic>> duasJson = [
     "urdu": "اے اللہ! میرے دل کو مضبوط رکھ",
     "english": "O Allah, keep my heart firm and strong",
     "reference": "📖 Hadith — Sahih Muslim",
+    "audio": "ringtone/Arabic19.mp3",
   },
 ];
 
-// --- Events ---
+final List<DuaModel> namesList =
+    duasJson.map((e) => DuaModel.fromJson(e)).toList();
+
+// ============================================================
+// BLoC
+// ============================================================
 abstract class AllDuaEvent {}
 
 class ChangeTabEvent extends AllDuaEvent {
@@ -188,13 +279,11 @@ class ChangeTabEvent extends AllDuaEvent {
   ChangeTabEvent(this.index);
 }
 
-// --- State ---
 class AllDuaState {
   final int selectedIndex;
   AllDuaState({this.selectedIndex = 0});
 }
 
-// --- BLoC ---
 class AllDuaBloc extends Bloc<AllDuaEvent, AllDuaState> {
   AllDuaBloc() : super(AllDuaState()) {
     on<ChangeTabEvent>((event, emit) {
@@ -203,6 +292,9 @@ class AllDuaBloc extends Bloc<AllDuaEvent, AllDuaState> {
   }
 }
 
+// ============================================================
+// AllDuaScreen — koi change nahi, bilkul same
+// ============================================================
 class AllDuaScreen extends StatelessWidget {
   const AllDuaScreen({super.key});
 
@@ -233,10 +325,9 @@ class AllDuaScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: getHeight(10)),
-             Text("Quick Access",
-            style: AppColors().customTextStyleBold16().copyWith(
-
-            ),
+            Text(
+              "Quick Access",
+              style: AppColors().customTextStyleBold16(),
             ),
             SizedBox(height: getHeight(10)),
             Row(
@@ -300,6 +391,9 @@ class AllDuaScreen extends StatelessWidget {
   }
 }
 
+// ============================================================
+// ✅ AllDuaCard — TTS hata ke local audio file use hoti hai
+// ============================================================
 class AllDuaCard extends StatefulWidget {
   final DuaModel? dua;
   final bool showLeftLine;
@@ -317,27 +411,25 @@ class AllDuaCard extends StatefulWidget {
 class _AllDuaCardState extends State<AllDuaCard> {
   bool isLoading = false;
   late DuaModel selectedDua;
-
-  // ✅ Random ki jagah sequential index — one by one aage badhega
   late int _currentIndex;
-
-  String? _previousSpeakingId;
+  String? _previousPlayingId;
 
   @override
   void initState() {
     super.initState();
 
     if (widget.dua != null) {
-      // ✅ Fixed dua pass hui hai (jaise AllDuaScreen se) — us par hi lock rahega
       _currentIndex = namesList.indexOf(widget.dua!);
       if (_currentIndex == -1) _currentIndex = 0;
     } else {
-      // ✅ Random-mode (home screen) — sequence 0 se shuru
       _currentIndex = 0;
     }
 
     selectedDua = namesList[_currentIndex];
-    AudioService.instance.currentlySpeaking.addListener(_handleSpeakingChange);
+
+    // ✅ AudioService ki jagah DuaAudioService listen karo
+    DuaAudioService.instance.currentlyPlaying
+        .addListener(_handlePlayingChange);
   }
 
   @override
@@ -354,27 +446,29 @@ class _AllDuaCardState extends State<AllDuaCard> {
 
   @override
   void dispose() {
-    AudioService.instance.currentlySpeaking.removeListener(_handleSpeakingChange);
+    // ✅ DuaAudioService se listener hata do
+    DuaAudioService.instance.currentlyPlaying
+        .removeListener(_handlePlayingChange);
     super.dispose();
   }
 
-  void _handleSpeakingChange() {
+  // ✅ Jab audio khatam ho to random-mode mein agle dua par jao
+  void _handlePlayingChange() {
     if (!mounted) return;
 
-    final speakingId = AudioService.instance.currentlySpeaking.value;
-    final wasSpeakingThisDua = _previousSpeakingId == selectedDua.arabic;
-    final audioJustStopped = speakingId == null;
+    final playingId = DuaAudioService.instance.currentlyPlaying.value;
+    final wasPlayingThisDua = _previousPlayingId == selectedDua.arabic;
+    final audioJustStopped = playingId == null;
     final isRandomMode = widget.dua == null;
 
-    if (wasSpeakingThisDua && audioJustStopped && isRandomMode) {
+    if (wasPlayingThisDua && audioJustStopped && isRandomMode) {
       setState(() {
-       
         _currentIndex = (_currentIndex + 1) % namesList.length;
         selectedDua = namesList[_currentIndex];
       });
     }
 
-    _previousSpeakingId = speakingId;
+    _previousPlayingId = playingId;
   }
 
   @override
@@ -411,8 +505,11 @@ class _AllDuaCardState extends State<AllDuaCard> {
               ),
               child: Column(
                 children: [
+                  // ── Top action bar ──
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: getWidth(12)),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: getWidth(12),
+                      ),
                     height: getHeight(38),
                     decoration: BoxDecoration(
                       color: Colors.grey.shade200,
@@ -424,34 +521,45 @@ class _AllDuaCardState extends State<AllDuaCard> {
                         // ── Share button ──
                         GestureDetector(
                           onTap: () {
-                            final shareText = '''
-                            ${selectedDua.arabic}
-                            ${selectedDua.english}
-                            ${selectedDua.urdu}
-                           Reference: ${selectedDua.reference} ''';
+                            final shareText =
+                                '${selectedDua.arabic}\n${selectedDua.english}\n${selectedDua.urdu}\nReference: ${selectedDua.reference}';
                             Share.share(shareText);
                           },
                           child: SvgPicture.asset('assets/icons/Group.svg'),
                         ),
                         SizedBox(width: getWidth(10)),
 
-                        // ── Play/Stop button ──
+                        // ✅ Play/Stop button — ab local audio file chalti hai
                         ValueListenableBuilder<String?>(
                           valueListenable:
-                              AudioService.instance.currentlySpeaking,
-                          builder: (context, speakingId, _) {
+                              DuaAudioService.instance.currentlyPlaying,
+                          builder: (context, playingId, _) {
                             final isThisPlaying =
-                                speakingId == selectedDua.arabic;
+                                playingId == selectedDua.arabic;
                             return GestureDetector(
                               onTap: isLoading
                                   ? null
                                   : () async {
+                                      // Agar audio path khali hai to snackbar dikhao
+                                      if (selectedDua.audioPath.isEmpty) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                                'Audio file not available'),
+                                            duration: Duration(seconds: 1),
+                                          ),
+                                        );
+                                        return;
+                                      }
+
                                       setState(() => isLoading = true);
                                       try {
-                                        await AudioService.instance
-                                            .speakOrToggle(
+                                        // ✅ TTS ki jagah local audio file
+                                        await DuaAudioService.instance
+                                            .playOrToggle(
                                           selectedDua.arabic,
-                                          selectedDua.arabic,
+                                          selectedDua.audioPath,
                                         );
                                       } finally {
                                         if (mounted) {
@@ -459,12 +567,14 @@ class _AllDuaCardState extends State<AllDuaCard> {
                                         }
                                       }
                                     },
-                              child: isLoading
-                                  ? SpinKitFadingCircle(
-                                      color: AppColors.labbaik,
-                                      size: 30.0,
-                                    )
-                                  : Icon(
+                              child: 
+                              // isLoading
+                              //     ? SpinKitFadingCircle(
+                              //         color: AppColors.labbaik,
+                              //         size: 30.0,
+                              //       )
+                              //     :
+                                   Icon(
                                       isThisPlaying
                                           ? Icons.stop_circle
                                           : Icons.play_circle_fill,
@@ -477,7 +587,7 @@ class _AllDuaCardState extends State<AllDuaCard> {
 
                         SizedBox(width: getWidth(6)),
 
-                        // ── Bookmark icon — working toggle ──
+                        // ── Bookmark toggle ──
                         ValueListenableBuilder<Set<String>>(
                           valueListenable:
                               BookmarkManager.instance.bookmarkedArabic,
@@ -488,73 +598,71 @@ class _AllDuaCardState extends State<AllDuaCard> {
                               onTap: () {
                                 BookmarkManager.instance
                                     .toggle(selectedDua.arabic);
-                               ScaffoldMessenger.of(context).hideCurrentSnackBar();
-
-ScaffoldMessenger.of(context).showSnackBar(
-  SnackBar(
-    behavior: SnackBarBehavior.floating,
-    elevation: 0,
-    margin: EdgeInsets.only(
-      left: getWidth(20),
-      right: getWidth(20),
-      bottom: getHeight(20),
-    ),
-    padding: EdgeInsets.symmetric(
-      horizontal: getWidth(14),
-      vertical: getHeight(12),
-    ),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(14),
-    ),
-    backgroundColor: isSaved
-        ? const Color(0xFF555555)
-        : const Color(0xFF5BC0BE),
-    duration: const Duration(milliseconds: 1200),
-    content: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          height: getHeight(30),
-          width: getWidth(30),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.20),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            isSaved
-                ? Icons.bookmark_remove_rounded
-                : Icons.bookmark_rounded,
-            color: Colors.white,
-            size: getFont(17),
-          ),
-        ),
-
-        SizedBox(width: getWidth(10)),
-
-        Expanded(
-          child: Text(
-            isSaved
-                ? 'Bookmark removed'
-                : 'Bookmark added successfully',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: getFont(12),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-
-        SizedBox(width: getWidth(6)),
-
-        Icon(
-          Icons.check_circle_rounded,
-          color: Colors.white,
-          size: getFont(18),
-        ),
-      ],
-    ),
-  ),
-);
+                                ScaffoldMessenger.of(context)
+                                    .hideCurrentSnackBar();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    behavior: SnackBarBehavior.floating,
+                                    elevation: 0,
+                                    margin: EdgeInsets.only(
+                                      left: getWidth(20),
+                                      right: getWidth(20),
+                                      bottom: getHeight(20),
+                                    ),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: getWidth(14),
+                                      vertical: getHeight(12),
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    backgroundColor: isSaved
+                                        ? const Color(0xFF555555)
+                                        : const Color(0xFF5BC0BE),
+                                    duration:
+                                        const Duration(milliseconds: 1200),
+                                    content: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          height: getHeight(30),
+                                          width: getWidth(30),
+                                          decoration: BoxDecoration(
+                                            color:
+                                                Colors.white.withOpacity(0.20),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            isSaved
+                                                ? Icons.bookmark_remove_rounded
+                                                : Icons.bookmark_rounded,
+                                            color: Colors.white,
+                                            size: getFont(17),
+                                          ),
+                                        ),
+                                        SizedBox(width: getWidth(10)),
+                                        Expanded(
+                                          child: Text(
+                                            isSaved
+                                                ? 'Bookmark removed'
+                                                : 'Bookmark added successfully',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: getFont(12),
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(width: getWidth(6)),
+                                        Icon(
+                                          Icons.check_circle_rounded,
+                                          color: Colors.white,
+                                          size: getFont(18),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
                               },
                               child: Icon(
                                 isSaved
@@ -571,7 +679,10 @@ ScaffoldMessenger.of(context).showSnackBar(
                       ],
                     ),
                   ),
+
                   SizedBox(height: getHeight(10)),
+
+                  // ── Dua content row ──
                   Row(
                     children: [
                       Stack(
@@ -614,6 +725,7 @@ ScaffoldMessenger.of(context).showSnackBar(
                           ],
                         ),
                       ),
+                      // ✅ Arabic text bilkul same — koi change nahi
                       Text(
                         selectedDua.arabic,
                         style: TextStyle(
@@ -632,6 +744,11 @@ ScaffoldMessenger.of(context).showSnackBar(
     );
   }
 }
+
+// ============================================================
+// Baaki classes — koi change nahi
+// ============================================================
+
 class QuickAccessContainer extends StatelessWidget {
   final String heading;
   final String subheading;
@@ -649,13 +766,15 @@ class QuickAccessContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: getWidth(10), vertical: getHeight(5)),
+      padding: EdgeInsets.symmetric(
+          horizontal: getWidth(10), vertical: getHeight(5)),
       height: getHeight(45),
       width: getWidth(180),
       decoration: BoxDecoration(
         color: isSelected ? primaryColor : Colors.white,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: isSelected ? primaryColor : Colors.transparent),
+        border:
+            Border.all(color: isSelected ? primaryColor : Colors.transparent),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.2),
@@ -719,7 +838,7 @@ class allduaContainer extends StatelessWidget {
             child: GestureDetector(
               onTap: () => onTap(0),
               child: AnimatedContainer(
-                duration: Duration(milliseconds: 250),
+                duration: const Duration(milliseconds: 250),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(50),
                   border: selectedIndex == 0
@@ -730,8 +849,9 @@ class allduaContainer extends StatelessWidget {
                 child: Text(
                   heading,
                   style: AppColors().customTextStyle12(
-                    fontWeight:
-                        selectedIndex == 0 ? FontWeight.w700 : FontWeight.w500,
+                    fontWeight: selectedIndex == 0
+                        ? FontWeight.w700
+                        : FontWeight.w500,
                     color: Colors.white,
                   ),
                 ),
@@ -742,7 +862,7 @@ class allduaContainer extends StatelessWidget {
             child: GestureDetector(
               onTap: () => onTap(1),
               child: AnimatedContainer(
-                duration: Duration(milliseconds: 250),
+                duration: const Duration(milliseconds: 250),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(50),
                   border: selectedIndex == 1
@@ -753,8 +873,9 @@ class allduaContainer extends StatelessWidget {
                 child: Text(
                   subheading,
                   style: AppColors().customTextStyle12(
-                    fontWeight:
-                        selectedIndex == 1 ? FontWeight.w700 : FontWeight.w500,
+                    fontWeight: selectedIndex == 1
+                        ? FontWeight.w700
+                        : FontWeight.w500,
                     color: Colors.white,
                   ),
                 ),
@@ -804,15 +925,13 @@ class DuaCard extends StatelessWidget {
           ),
         ],
       ),
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding:
-                EdgeInsets.symmetric(
-                  horizontal: getWidth(10),
-                   vertical: getHeight(4)),
+            padding: EdgeInsets.symmetric(
+                horizontal: getWidth(10), vertical: getHeight(4)),
             decoration: BoxDecoration(
               color: dua.labelBg,
               borderRadius: BorderRadius.circular(6),
@@ -836,7 +955,7 @@ class DuaCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: getFont(22),
                 height: getHeight(2.2),
-                color: Color(0xFF1A1A1A),
+                color: const Color(0xFF1A1A1A),
                 fontFamily: 'serif',
               ),
             ),
@@ -851,17 +970,17 @@ class DuaCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: getFont(15),
                 height: 1.9,
-                color: Color(0xFF444444),
+                color: const Color(0xFF444444),
               ),
             ),
           ),
-          Divider(height: getHeight(20), color: Color(0xFFEEEEEE)),
+          Divider(height: getHeight(20), color: const Color(0xFFEEEEEE)),
           Text(
             dua.translation,
             style: AppColors().customTextStyle14().copyWith(
                   fontSize: getFont(13),
                   height: getHeight(1.6),
-                  color: Color(0xFF666666),
+                  color: const Color(0xFF666666),
                 ),
           ),
         ],
@@ -870,13 +989,12 @@ class DuaCard extends StatelessWidget {
   }
 }
 
-
 class BookmarkManager {
   static final BookmarkManager instance = BookmarkManager._();
   BookmarkManager._();
 
   static const String _prefsKey = 'bookmarked_arabic';
-  SharedPreferences? _prefs; // ← instance save karo, baar baar getInstance mat karo
+  SharedPreferences? _prefs;
 
   final ValueNotifier<Set<String>> bookmarkedArabic =
       ValueNotifier<Set<String>>({});
@@ -885,7 +1003,7 @@ class BookmarkManager {
 
   Future<void> init() async {
     if (_isLoaded) return;
-    _prefs = await SharedPreferences.getInstance(); // ← ek baar lo
+    _prefs = await SharedPreferences.getInstance();
     final saved = _prefs!.getStringList(_prefsKey);
     if (saved != null) {
       bookmarkedArabic.value = saved.toSet();
@@ -894,7 +1012,7 @@ class BookmarkManager {
   }
 
   Future<void> _persist(Set<String> data) async {
-    await _prefs!.setStringList(_prefsKey, data.toList()); // ← same instance use karo
+    await _prefs!.setStringList(_prefsKey, data.toList());
   }
 
   bool isBookmarked(String arabic) => bookmarkedArabic.value.contains(arabic);
@@ -914,6 +1032,7 @@ class BookmarkManager {
     return isNowBookmarked;
   }
 }
+
 class DuasCard extends StatelessWidget {
   final Dua dua;
   const DuasCard({super.key, required this.dua});
@@ -924,11 +1043,9 @@ class DuasCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: const Color(0xFFE0E0E0),
-        ),
+        border: Border.all(color: const Color(0xFFE0E0E0)),
       ),
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -962,11 +1079,8 @@ class DuasCard extends StatelessWidget {
                       BookmarkManager.instance.toggle(dua.arabic);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(
-                            saved
-                                ? 'Bookmark removed'
-                                : 'Bookmark added! ✅',
-                          ),
+                          content:
+                              Text(saved ? 'Bookmark removed' : 'Bookmark added! ✅'),
                           duration: const Duration(milliseconds: 800),
                           backgroundColor:
                               saved ? Colors.grey : const Color(0xff5BC0BE),
@@ -995,7 +1109,7 @@ class DuasCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: getFont(22),
                 height: 2.2,
-                color: Color(0xFF1A1A1A),
+                color: const Color(0xFF1A1A1A),
                 fontFamily: 'serif',
               ),
             ),
@@ -1010,17 +1124,17 @@ class DuasCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: getFont(15),
                 height: 1.9,
-                color: Color(0xFF444444),
+                color: const Color(0xFF444444),
               ),
             ),
           ),
-          Divider(height: getHeight(20), color: Color(0xFFEEEEEE)),
+          Divider(height: getHeight(20), color: const Color(0xFFEEEEEE)),
           Text(
             dua.translation,
             style: TextStyle(
               fontSize: getFont(13),
               height: 1.6,
-              color: Color(0xFF666666),
+              color: const Color(0xFF666666),
             ),
           ),
         ],
@@ -1032,7 +1146,6 @@ class DuasCard extends StatelessWidget {
 class BookmarksScreen extends StatelessWidget {
   const BookmarksScreen({super.key});
 
-  // Sab duas mein se bookmarked wali dhundho
   List<Dua> _getBookmarkedDuas(Set<String> bookmarkedArabic) {
     final List<Dua> result = [];
     for (final subject in subjects) {
@@ -1045,7 +1158,6 @@ class BookmarksScreen extends StatelessWidget {
     return result;
   }
 
-  // namesList mein se bookmarked wali dhundho
   List<DuaModel> _getBookmarkedDuaModels(Set<String> bookmarkedArabic) {
     return namesList.where((d) => bookmarkedArabic.contains(d.arabic)).toList();
   }
@@ -1069,9 +1181,9 @@ class BookmarksScreen extends StatelessWidget {
         ),
         title: Text(
           '🔖 Bookmarks',
-          style: AppColors().customTextStyleBold16().copyWith(
-                fontSize: getFont(16),
-              ),
+          style: AppColors()
+              .customTextStyleBold16()
+              .copyWith(fontSize: getFont(16)),
         ),
       ),
       body: ValueListenableBuilder<Set<String>>(
@@ -1085,11 +1197,8 @@ class BookmarksScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.bookmark_border,
-                    size: 72,
-                    color: Colors.grey.shade300,
-                  ),
+                  Icon(Icons.bookmark_border,
+                      size: 72, color: Colors.grey.shade300),
                   SizedBox(height: getHeight(16)),
                   Text(
                     'No bookmarks found.',
@@ -1102,7 +1211,8 @@ class BookmarksScreen extends StatelessWidget {
                   SizedBox(height: getHeight(8)),
                   Text(
                     'Tap the bookmark icon on any Dua.',
-                    style: TextStyle(fontSize: getFont(13), color: Colors.grey),
+                    style:
+                        TextStyle(fontSize: getFont(13), color: Colors.grey),
                   ),
                 ],
               ),
@@ -1118,7 +1228,7 @@ class BookmarksScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: getFont(14),
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF888888),
+                    color: const Color(0xFF888888),
                   ),
                 ),
                 SizedBox(height: getHeight(10)),
@@ -1134,9 +1244,9 @@ class BookmarksScreen extends StatelessWidget {
                 Text(
                   'All Duas',
                   style: AppColors().customTextStyleBold16().copyWith(
-                    fontSize: getFont(16),
-                    color: AppColors.labbaik,
-                  )
+                        fontSize: getFont(16),
+                        color: AppColors.labbaik,
+                      ),
                 ),
                 SizedBox(height: getHeight(10)),
                 ...modelDuas.asMap().entries.map(
@@ -1182,11 +1292,9 @@ class AllBookMarkDuaCard extends StatelessWidget {
         horizontal: getWidth(12),
         vertical: getHeight(8),
       ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(6),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       child: Padding(
-        padding: EdgeInsets.all(12),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1203,7 +1311,9 @@ class AllBookMarkDuaCard extends StatelessWidget {
               arabicName,
               textAlign: TextAlign.right,
               style: AppColors().customTextStyleBold16().copyWith(
-                  fontSize: getFont(20), fontWeight: FontWeight.bold),
+                    fontSize: getFont(20),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             SizedBox(height: getHeight(20)),
             Text(
@@ -1239,5 +1349,4 @@ class AllBookMarkDuaCard extends StatelessWidget {
       ),
     );
   }
-
 }

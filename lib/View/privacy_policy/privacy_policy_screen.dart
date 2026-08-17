@@ -29,7 +29,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   _buildIntroCard(appColors),
 
                   // Sections
-                  const SizedBox(height: 8),
+                   SizedBox(height: getHeight(8)),
                   _buildSection(
                     appColors: appColors,
                     number: '01',
